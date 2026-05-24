@@ -12,5 +12,6 @@
     <ProjectReference Include="..\PtpLabClock.Protocol\PtpLabClock.Protocol.csproj" />
     <ProjectReference Include="..\PtpLabClock.Pcap\PtpLabClock.Pcap.csproj" />
     <ProjectReference Include="..\PtpLabClock.Config\PtpLabClock.Config.csproj" />
+    <ProjectReference Include="..\PtpLabClock.Reporting\PtpLabClock.Reporting.csproj" />
   </ItemGroup>
 </Project>

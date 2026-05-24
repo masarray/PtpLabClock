@@ -245,7 +245,9 @@
                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                             <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{StaticResource QuietButton}" Height="44" Margin="0,0,10,0" MinWidth="88"/>
                             <Button Command="{Binding StartCommand}" Style="{StaticResource PrimaryButton}" Height="44" Margin="0,0,10,0" MinWidth="118"><TextBlock Text="Start Engine" Foreground="White" FontWeight="SemiBold"/></Button>
-                            <Button Content="Stop" Command="{Binding StopCommand}" Style="{StaticResource SoftDangerButton}" Height="44" MinWidth="82"/>
+                            <Button Content="Stop" Command="{Binding StopCommand}" Style="{StaticResource SoftDangerButton}" Height="44" Margin="0,0,10,0" MinWidth="82"/>
+                            <Button Content="Export PDF" Command="{Binding ExportReportCommand}" Style="{StaticResource QuietButton}" Height="44" Margin="0,0,10,0" MinWidth="104"/>
+                            <Button Content="Export Package" Command="{Binding ExportPackageCommand}" Style="{StaticResource QuietButton}" Height="44" MinWidth="126"/>
                         </StackPanel>
                     </Grid>
                 </Border>

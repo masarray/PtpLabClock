@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+using PtpLabClock.Core.Diagnostics;
 using PtpLabClock.Core.Engine;
 using PtpLabClock.Core.Health;
 using PtpLabClock.Core.Monitor;
@@ -10,6 +11,7 @@ using PtpLabClock.Protocol.Messages;
 using PtpLabClock.Protocol.Serialization;
 using PtpLabClock.Pcap.Adapters;
 using PtpLabClock.Pcap.Transport;
+using PtpLabClock.Reporting;
 
 if (args.Contains("--validate-protocol"))
 {
@@ -31,6 +33,8 @@ if (args.Contains("--list") || args.Length == 0)
     Console.WriteLine("dotnet run -- --adapter-index 0 --domain 0 --record-pcap .\\captures\\ptp-live.pcap");
     Console.WriteLine("dotnet run -- --monitor --adapter-index 0 --domain 0");
     Console.WriteLine("dotnet run -- --health --adapter-index 0 --domain 0");
+    Console.WriteLine("dotnet run -- --health --adapter-index 0 --domain 0 --export-report .\\captures\\ptp-health-report.pdf");
+    Console.WriteLine("dotnet run -- --health --adapter-index 0 --domain 0 --export-package .\\captures\\ptp-session-package.zip");
     Console.WriteLine("dotnet run -- --validate-protocol --domain 0");
     Console.WriteLine("dotnet run -- --validate-protocol --domain 0 --export-pcap .\\captures\\ptp-validation.pcap");
     return;
@@ -46,6 +50,8 @@ if (adapterIndex < 0 || adapterIndex >= adapters.Count)
 var domain = ReadByte(args, "--domain", 0);
 var profileText = ReadString(args, "--profile", "iec61850");
 var recordPcapPath = ReadString(args, "--record-pcap", string.Empty);
+var exportReportPath = ReadString(args, "--export-report", string.Empty);
+var exportPackagePath = ReadString(args, "--export-package", string.Empty);
 var profile = profileText.Equals("generic", StringComparison.OrdinalIgnoreCase)
     ? PtpProfilePreset.GenericPtpV2
     : profileText.Equals("analyzer", StringComparison.OrdinalIgnoreCase)
@@ -54,7 +60,7 @@ var profile = profileText.Equals("generic", StringComparison.OrdinalIgnoreCase)
 
 if (args.Contains("--monitor") || args.Contains("--health"))
 {
-    await RunPassiveMonitorAsync(adapters[adapterIndex], domain, recordPcapPath, args.Contains("--health"));
+    await RunPassiveMonitorAsync(adapters[adapterIndex], domain, recordPcapPath, exportReportPath, exportPackagePath, args.Contains("--health"));
     return;
 }
 
@@ -98,7 +104,7 @@ finally
     }
 }
 
-static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAdapterInfoDto adapter, byte domain, string recordPcapPath, bool showHealth)
+static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAdapterInfoDto adapter, byte domain, string recordPcapPath, string exportReportPath, string exportPackagePath, bool showHealth)
 {
     Console.WriteLine(showHealth ? "Process Bus Timing Lab - Timing Health Validator" : "Process Bus Timing Lab - Passive PTP Monitor");
     Console.WriteLine($"Adapter : {adapter.Description}");
@@ -109,6 +115,10 @@ static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAd
 
     var monitor = new PtpPassiveMonitor();
     var validator = new PtpTimingHealthValidator();
+    var sessionStartedAt = DateTime.Now;
+    var eventLog = new List<PtpEventLogItem>();
+    PtpMonitorSnapshot? latestSnapshot = null;
+    PtpHealthSnapshot? latestHealth = null;
     var healthOptions = PtpHealthValidatorOptions.ForLabDomain(domain);
     PcapSessionWriter? recorder = null;
     await using var transport = new NpcapPtpTransport();
@@ -124,8 +134,14 @@ static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAd
     {
         recorder?.WriteFrame(e.Frame);
         var snapshot = monitor.ObserveFrame(e.Frame, "RX");
+        latestSnapshot = snapshot;
         if (snapshot.LastMessage is { } last)
+        {
             Console.WriteLine($"{last.Timestamp:HH:mm:ss.fff} {last.Summary} [{last.Transport}, len={last.MessageLength}]");
+            eventLog.Insert(0, new PtpEventLogItem { Timestamp = last.Timestamp, Severity = "INFO", Source = "PTP-RX", Message = $"{last.Summary} [{last.Transport}, len={last.MessageLength}]" });
+            while (eventLog.Count > 300)
+                eventLog.RemoveAt(eventLog.Count - 1);
+        }
     };
 
     await transport.OpenAsync(adapter.Id);
@@ -140,6 +156,7 @@ static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAd
             {
                 await Task.Delay(2000, cts.Token).ConfigureAwait(false);
                 var snapshot = monitor.GetSnapshot();
+                latestSnapshot = snapshot;
                 Console.Title = $"PTP Monitor frames={snapshot.TotalFrames} domains={snapshot.DetectedDomainCount} sources={snapshot.Sources.Count} live={snapshot.LiveSourceCount}";
                 Console.WriteLine($"-- {snapshot.Summary}");
 
@@ -152,6 +169,7 @@ static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAd
                 if (showHealth)
                 {
                     var health = validator.Evaluate(snapshot, healthOptions);
+                    latestHealth = health;
                     Console.WriteLine($"   HEALTH {health.Summary}");
                     foreach (var check in health.Checks)
                         Console.WriteLine($"      {check.Level.ToString().ToUpperInvariant(),-4} {check.Name,-20} {check.Summary}");
@@ -173,6 +191,37 @@ static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAd
     {
         recorder.Dispose();
         Console.WriteLine($"PCAP saved. Packets={recorder.PacketCount}");
+    }
+
+    if (!string.IsNullOrWhiteSpace(exportReportPath) || !string.IsNullOrWhiteSpace(exportPackagePath))
+    {
+        latestSnapshot ??= monitor.GetSnapshot();
+        latestHealth ??= validator.Evaluate(latestSnapshot, healthOptions);
+        var report = new PtpSessionReportData
+        {
+            ProjectName = "PTP Health Validation",
+            Mode = showHealth ? "Passive Health Monitor" : "Passive PTP Monitor",
+            AdapterName = adapter.Description,
+            ProfileName = "IEC 61850-9-3 Lab / Monitor",
+            DomainNumber = domain,
+            SessionStartedAt = sessionStartedAt,
+            SessionEndedAt = DateTime.Now,
+            MonitorSnapshot = latestSnapshot,
+            HealthSnapshot = latestHealth,
+            Events = eventLog
+        };
+
+        if (!string.IsNullOrWhiteSpace(exportReportPath))
+        {
+            PtpSessionReportGenerator.GeneratePdf(report, exportReportPath);
+            Console.WriteLine($"PDF report saved: {exportReportPath}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(exportPackagePath))
+        {
+            PtpSessionPackageExporter.ExportZip(report, exportPackagePath);
+            Console.WriteLine($"Session package saved: {exportPackagePath}");
+        }
     }
 }
 

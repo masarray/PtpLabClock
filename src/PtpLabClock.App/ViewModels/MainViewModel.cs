@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Win32;
 using PtpLabClock.App.Commands;
 using PtpLabClock.Core.Abstractions;
 using PtpLabClock.Core.Diagnostics;
@@ -12,6 +13,7 @@ using PtpLabClock.Core.Transports;
 using PtpLabClock.Pcap.Adapters;
 using PtpLabClock.Pcap.Transport;
 using PtpLabClock.Protocol.Enums;
+using PtpLabClock.Reporting;
 
 namespace PtpLabClock.App.ViewModels;
 
@@ -34,6 +36,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private int _healthPassCount;
     private int _healthWarnCount;
     private int _healthFailCount;
+    private DateTime _sessionStartedAt = DateTime.Now;
+    private PtpMonitorSnapshot? _latestMonitorSnapshot;
+    private PtpHealthSnapshot? _latestHealthSnapshot;
 
     public MainViewModel()
     {
@@ -42,6 +47,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         StopCommand = new AsyncRelayCommand(_ => StopAsync(), _ => _engine is not null);
         ScenarioCommand = new RelayCommand(p => _engine?.ApplyScenario(p?.ToString() ?? string.Empty), _ => _engine is not null);
         ResetScenarioCommand = new RelayCommand(_ => _engine?.ResetScenarios(), _ => _engine is not null);
+        ExportReportCommand = new RelayCommand(_ => ExportReport());
+        ExportPackageCommand = new RelayCommand(_ => ExportPackage());
         ResetHealthCards();
         RefreshAdapters();
     }
@@ -55,6 +62,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     public ICommand StopCommand { get; }
     public ICommand ScenarioCommand { get; }
     public ICommand ResetScenarioCommand { get; }
+    public ICommand ExportReportCommand { get; }
+    public ICommand ExportPackageCommand { get; }
 
     public NetworkAdapterInfoDto? SelectedAdapter
     {
@@ -194,6 +203,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         try
         {
             Events.Clear();
+            _sessionStartedAt = DateTime.Now;
+            _latestMonitorSnapshot = null;
+            _latestHealthSnapshot = null;
             ResetCounters();
             ResetHealthCards();
             await _engine.StartAsync(options);
@@ -237,7 +249,12 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     {
         var domain = (byte)Math.Clamp(DomainNumber, 0, 255);
         var health = _healthValidator.Evaluate(snapshot, PtpHealthValidatorOptions.ForLabDomain(domain));
-        Dispatch(() => UpdateHealthCards(health));
+        Dispatch(() =>
+        {
+            _latestMonitorSnapshot = snapshot;
+            _latestHealthSnapshot = health;
+            UpdateHealthCards(health);
+        });
     }
 
     private void ResetCounters()
@@ -318,6 +335,80 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
     }
 
+    private void ExportReport()
+    {
+        try
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = "Export PTP Health PDF Report",
+                Filter = "PDF report (*.pdf)|*.pdf",
+                FileName = $"ptp-health-report-{DateTime.Now:yyyyMMdd-HHmmss}.pdf",
+                AddExtension = true,
+                DefaultExt = ".pdf"
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            var data = BuildReportData();
+            PtpSessionReportGenerator.GeneratePdf(data, dialog.FileName);
+            AddEvent("INFO", "REPORT", $"PDF exported: {dialog.FileName}");
+        }
+        catch (Exception ex)
+        {
+            AddEvent("ERROR", "REPORT", ex.Message);
+        }
+    }
+
+
+    private void ExportPackage()
+    {
+        try
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = "Export Session Evidence Package",
+                Filter = "Session evidence package (*.zip)|*.zip",
+                FileName = $"ptp-session-package-{DateTime.Now:yyyyMMdd-HHmmss}.zip",
+                AddExtension = true,
+                DefaultExt = ".zip"
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            var data = BuildReportData();
+            PtpSessionPackageExporter.ExportZip(data, dialog.FileName);
+            AddEvent("INFO", "PACKAGE", $"Session package exported: {dialog.FileName}");
+        }
+        catch (Exception ex)
+        {
+            AddEvent("ERROR", "PACKAGE", ex.Message);
+        }
+    }
+
+    private PtpSessionReportData BuildReportData()
+    {
+        var domain = (byte)Math.Clamp(DomainNumber, 0, 255);
+        return new PtpSessionReportData
+        {
+            ProjectName = "Process Bus Timing Lab",
+            OperatorName = Environment.UserName,
+            GeneratedAt = DateTime.Now,
+            SessionStartedAt = _sessionStartedAt,
+            SessionEndedAt = DateTime.Now,
+            AdapterName = SelectedAdapter?.Description ?? "Not selected",
+            ProfileName = SelectedProfile.ToString(),
+            DomainNumber = domain,
+            Mode = AdapterModeText,
+            Counters = _counters.Clone(),
+            MonitorSnapshot = _latestMonitorSnapshot,
+            HealthSnapshot = _latestHealthSnapshot,
+            Events = Events.ToArray()
+        };
+    }
+
     private void AddEvent(string severity, string source, string message) => AddEvent(new PtpEventLogItem { Timestamp = DateTime.Now, Severity = severity, Source = source, Message = message });
 
     private void AddEvent(PtpEventLogItem item)
@@ -339,6 +430,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         (StopCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
         (ScenarioCommand as RelayCommand)?.RaiseCanExecuteChanged();
         (ResetScenarioCommand as RelayCommand)?.RaiseCanExecuteChanged();
+        (ExportReportCommand as RelayCommand)?.RaiseCanExecuteChanged();
+        (ExportPackageCommand as RelayCommand)?.RaiseCanExecuteChanged();
     }
 
     public async ValueTask DisposeAsync() => await DisposeEngineAsync();

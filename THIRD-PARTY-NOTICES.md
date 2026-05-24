@@ -23,3 +23,11 @@ This project uses clean-room implementation principles. It learns from public be
 ## Scope Disclaimer
 
 This application is a **lab simulator and diagnostic companion**. It is not a certified timing source and must not be represented as a replacement for a GPS/PTP grandmaster in protection, metering, or final acceptance testing.
+
+## QuestPDF
+
+- Package: QuestPDF
+- Used by: `PtpLabClock.Reporting`
+- Purpose: formatted PDF session/evidence report generation.
+- License note: QuestPDF Community is available under MIT license terms for individuals, open-source projects, non-profits, and eligible companies; commercial licensing may be required for larger companies according to QuestPDF's current license terms.
+- Project code sets `QuestPDF.Settings.License = LicenseType.Community` inside the report generator.

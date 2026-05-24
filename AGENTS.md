@@ -275,3 +275,22 @@ Engine direction after v13:
 - WPF dashboard now surfaces Timing Health Validator results as compact diagnostic cards.
 - Health UI is driven by `PtpMasterEngine.MonitorSnapshotUpdated` and `PtpTimingHealthValidator`.
 - Do not add major visual redesign in health-card work; keep it compact and diagnostic-oriented.
+
+## v16 PDF Report Direction
+
+Visual design remains locked. v16 adds `PtpLabClock.Reporting`, a QuestPDF-based formatted evidence report module. Keep this module isolated from Core so protocol/engine code does not depend on PDF rendering. Do not overclaim timing accuracy. All generated reports must preserve lab-only safety wording.
+
+QuestPDF is used for code-first PDF generation. Set `QuestPDF.Settings.License = LicenseType.Community` before generating a report and keep third-party notices updated.
+
+
+## v17 WPF Export Report
+
+The WPF app may expose a compact Export PDF action. Keep visual design locked. Use `PtpSessionReportGenerator.GeneratePdf` through the reporting project. Reports are engineering/lab evidence only, not timing-accuracy certificates.
+
+## v18 Session Package Export
+
+- Keep visual design locked.
+- Evidence package export is implemented as a ZIP bundle containing `report.pdf`, `session.json`, `events.csv`, `metadata.json`, and `README.txt`.
+- Use `PtpSessionPackageExporter.ExportZip(...)` for ZIP package export.
+- Do not put PCAP files into the package automatically until the recorder lifecycle and selected path are explicitly tracked by the UI.
+- Keep report/package generation inside `PtpLabClock.Reporting`; Core must stay independent from PDF/ZIP concerns.
