@@ -259,3 +259,19 @@ Engine direction after v13:
 - Console monitor mode is the first validation surface.
 - Do not claim compliance or timing accuracy from passive monitoring alone.
 - Next phase should convert monitor snapshots into Timing Health Validator Lite statuses.
+
+## v14 Timing Health Validator Lite
+
+- Visual design remains locked.
+- Health diagnostics must be derived from passive monitor snapshots.
+- Use PASS / WARN / FAIL wording for engineering readability.
+- Do not claim timing accuracy validation.
+- Initial health checks are PTP Visibility, Domain Match, GM Stability, Follow_Up Pairing, Pdelay Activity, Sequence Continuity, and Analyzer Readiness.
+- Console `--health` mode is the reference path for validator testing.
+
+## v15 Health Dashboard UI Integration
+
+- Visual design remains locked.
+- WPF dashboard now surfaces Timing Health Validator results as compact diagnostic cards.
+- Health UI is driven by `PtpMasterEngine.MonitorSnapshotUpdated` and `PtpTimingHealthValidator`.
+- Do not add major visual redesign in health-card work; keep it compact and diagnostic-oriented.

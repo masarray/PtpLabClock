@@ -104,6 +104,13 @@ public sealed class PtpPassiveMonitor
             _sources[key] = source;
         }
 
+        if (source.TotalCount > 0 && source.LastMessageType == message.MessageType)
+        {
+            var expected = unchecked((ushort)(source.LastSequenceId + 1));
+            if (message.SequenceId != expected && message.SequenceId != source.LastSequenceId)
+                source.SequenceAnomalyCount++;
+        }
+
         source.LastSeen = message.Timestamp;
         source.LastMessageType = message.MessageType;
         source.LastSequenceId = message.SequenceId;

@@ -18,6 +18,7 @@ public sealed class PtpSourceClockState
     public long PdelayRespCount { get; set; }
     public long PdelayRespFollowUpCount { get; set; }
     public long OtherCount { get; set; }
+    public long SequenceAnomalyCount { get; set; }
 
     public bool IsLive(DateTime now, TimeSpan timeout) => now - LastSeen <= timeout;
 

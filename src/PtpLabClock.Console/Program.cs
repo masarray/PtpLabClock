@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 using PtpLabClock.Core.Engine;
+using PtpLabClock.Core.Health;
 using PtpLabClock.Core.Monitor;
 using PtpLabClock.Core.Recording;
 using PtpLabClock.Protocol;
@@ -28,6 +29,8 @@ if (args.Contains("--list") || args.Length == 0)
     Console.WriteLine("Run examples:");
     Console.WriteLine("dotnet run -- --adapter-index 0 --domain 0 --profile iec61850");
     Console.WriteLine("dotnet run -- --adapter-index 0 --domain 0 --record-pcap .\\captures\\ptp-live.pcap");
+    Console.WriteLine("dotnet run -- --monitor --adapter-index 0 --domain 0");
+    Console.WriteLine("dotnet run -- --health --adapter-index 0 --domain 0");
     Console.WriteLine("dotnet run -- --validate-protocol --domain 0");
     Console.WriteLine("dotnet run -- --validate-protocol --domain 0 --export-pcap .\\captures\\ptp-validation.pcap");
     return;
@@ -49,9 +52,9 @@ var profile = profileText.Equals("generic", StringComparison.OrdinalIgnoreCase)
         ? PtpProfilePreset.AnalyzerTest
         : PtpProfilePreset.Iec61850_9_3_Lab;
 
-if (args.Contains("--monitor"))
+if (args.Contains("--monitor") || args.Contains("--health"))
 {
-    await RunPassiveMonitorAsync(adapters[adapterIndex], domain, recordPcapPath);
+    await RunPassiveMonitorAsync(adapters[adapterIndex], domain, recordPcapPath, args.Contains("--health"));
     return;
 }
 
@@ -95,9 +98,9 @@ finally
     }
 }
 
-static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAdapterInfoDto adapter, byte domain, string recordPcapPath)
+static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAdapterInfoDto adapter, byte domain, string recordPcapPath, bool showHealth)
 {
-    Console.WriteLine("Process Bus Timing Lab - Passive PTP Monitor");
+    Console.WriteLine(showHealth ? "Process Bus Timing Lab - Timing Health Validator" : "Process Bus Timing Lab - Passive PTP Monitor");
     Console.WriteLine($"Adapter : {adapter.Description}");
     Console.WriteLine($"Domain  : {domain}");
     Console.WriteLine("Filter  : eth.type == 0x88f7");
@@ -105,6 +108,8 @@ static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAd
     Console.WriteLine();
 
     var monitor = new PtpPassiveMonitor();
+    var validator = new PtpTimingHealthValidator();
+    var healthOptions = PtpHealthValidatorOptions.ForLabDomain(domain);
     PcapSessionWriter? recorder = null;
     await using var transport = new NpcapPtpTransport();
 
@@ -141,7 +146,15 @@ static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAd
                 foreach (var source in snapshot.Sources.Take(5))
                 {
                     var state = source.IsLive(DateTime.Now, TimeSpan.FromSeconds(5)) ? "LIVE" : "LOST";
-                    Console.WriteLine($"   {state,-4} domain={source.Domain} src={source.ClockIdentity} Ann={source.AnnounceCount} Sync={source.SyncCount} FU={source.FollowUpCount} PdelayReq={source.PdelayReqCount} Last={source.LastMessageType}/{source.LastSequenceId}");
+                    Console.WriteLine($"   {state,-4} domain={source.Domain} src={source.ClockIdentity} Ann={source.AnnounceCount} Sync={source.SyncCount} FU={source.FollowUpCount} PdelayReq={source.PdelayReqCount} SeqWarn={source.SequenceAnomalyCount} Last={source.LastMessageType}/{source.LastSequenceId}");
+                }
+
+                if (showHealth)
+                {
+                    var health = validator.Evaluate(snapshot, healthOptions);
+                    Console.WriteLine($"   HEALTH {health.Summary}");
+                    foreach (var check in health.Checks)
+                        Console.WriteLine($"      {check.Level.ToString().ToUpperInvariant(),-4} {check.Name,-20} {check.Summary}");
                 }
             }
             catch (OperationCanceledException)

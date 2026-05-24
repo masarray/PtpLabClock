@@ -14,9 +14,10 @@ public sealed class PtpMonitorSnapshot
     public PtpObservedMessage? LastMessage { get; init; }
     public string LastInvalidReason { get; init; } = string.Empty;
 
+    public long ValidFrames => Math.Max(0, TotalFrames - InvalidFrames);
     public int LiveSourceCount => Sources.Count(s => s.IsLive(Timestamp, TimeSpan.FromSeconds(5)));
     public int DetectedDomainCount => DomainCounters.Count;
     public bool MultipleAnnounceSources => Sources.Count(s => s.AnnounceCount > 0 && s.IsLive(Timestamp, TimeSpan.FromSeconds(5))) > 1;
 
-    public string Summary => $"frames={TotalFrames} invalid={InvalidFrames} domains={DetectedDomainCount} liveSources={LiveSourceCount} last={LastMessage?.Summary ?? "none"}";
+    public string Summary => $"frames={TotalFrames} valid={ValidFrames} invalid={InvalidFrames} domains={DetectedDomainCount} liveSources={LiveSourceCount} last={LastMessage?.Summary ?? "none"}";
 }

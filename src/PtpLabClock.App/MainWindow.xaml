@@ -28,6 +28,49 @@
                 <TextBlock Grid.Column="3" Text="{Binding Message}" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" FontSize="12"/>
             </Grid>
         </DataTemplate>
+        <DataTemplate x:Key="HealthCheckTemplate">
+            <Border x:Name="HealthCard" Background="#F8FAFC" BorderBrush="#E4ECF7" BorderThickness="1" CornerRadius="16" Padding="12,10" Margin="0,0,8,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Name}" Style="{StaticResource KickerText}" Foreground="#64748B" TextTrimming="CharacterEllipsis"/>
+                        <Border x:Name="LevelChip" Grid.Column="1" Background="#EAF1FF" CornerRadius="9" Padding="7,2" Margin="8,0,0,0">
+                            <TextBlock x:Name="LevelText" Text="{Binding Level}" FontSize="9.5" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="{Binding Summary}" Foreground="{StaticResource TextBrush}" FontSize="12.5" FontWeight="SemiBold" Margin="0,8,0,0" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Row="2" Text="{Binding Detail}" Foreground="{StaticResource MutedTextBrush}" FontSize="11.5" LineHeight="15" Margin="0,4,0,0" TextWrapping="Wrap" MaxHeight="34"/>
+                </Grid>
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding Level}" Value="PASS">
+                    <Setter TargetName="HealthCard" Property="Background" Value="#F0FDF4"/>
+                    <Setter TargetName="HealthCard" Property="BorderBrush" Value="#BBF7D0"/>
+                    <Setter TargetName="LevelChip" Property="Background" Value="#DCFCE7"/>
+                    <Setter TargetName="LevelText" Property="Foreground" Value="#15803D"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Level}" Value="WARN">
+                    <Setter TargetName="HealthCard" Property="Background" Value="#FFFBEB"/>
+                    <Setter TargetName="HealthCard" Property="BorderBrush" Value="#FDE68A"/>
+                    <Setter TargetName="LevelChip" Property="Background" Value="#FEF3C7"/>
+                    <Setter TargetName="LevelText" Property="Foreground" Value="#B45309"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Level}" Value="FAIL">
+                    <Setter TargetName="HealthCard" Property="Background" Value="#FFF1F2"/>
+                    <Setter TargetName="HealthCard" Property="BorderBrush" Value="#FDA4AF"/>
+                    <Setter TargetName="LevelChip" Property="Background" Value="#FFE4E6"/>
+                    <Setter TargetName="LevelText" Property="Foreground" Value="#BE123C"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>
@@ -346,6 +389,37 @@
                         </Grid>
                     </Border>
                 </Grid>
+
+
+                <Border Style="{StaticResource Card}" Padding="18,16" Margin="0,0,0,14">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Timing Health" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                                <Border Background="#F2F6FE" BorderBrush="#E2EBF7" BorderThickness="1" CornerRadius="13" Padding="9,4" Margin="10,0,0,0">
+                                    <TextBlock Text="{Binding HealthOverallText}" Style="{StaticResource KickerText}" Foreground="{StaticResource AccentBrush}"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding HealthSummaryText}" Foreground="{StaticResource MutedTextBrush}" FontSize="12.2" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <ItemsControl Grid.Row="1" ItemsSource="{Binding HealthChecks}" ItemTemplate="{StaticResource HealthCheckTemplate}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="7"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </Grid>
+                </Border>
 
                 <Border Style="{StaticResource Card}" Padding="18,18,18,18">
                     <Grid>

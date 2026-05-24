@@ -6,6 +6,8 @@ using PtpLabClock.App.Commands;
 using PtpLabClock.Core.Abstractions;
 using PtpLabClock.Core.Diagnostics;
 using PtpLabClock.Core.Engine;
+using PtpLabClock.Core.Health;
+using PtpLabClock.Core.Monitor;
 using PtpLabClock.Core.Transports;
 using PtpLabClock.Pcap.Adapters;
 using PtpLabClock.Pcap.Transport;
@@ -16,6 +18,7 @@ namespace PtpLabClock.App.ViewModels;
 public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 {
     private readonly NpcapAdapterProvider _adapterProvider = new();
+    private readonly PtpTimingHealthValidator _healthValidator = new();
     private PtpMasterEngine? _engine;
     private NetworkAdapterInfoDto? _selectedAdapter;
     private PtpProfilePreset _selectedProfile = PtpProfilePreset.Iec61850_9_3_Lab;
@@ -26,6 +29,11 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private string _stateText = "STOPPED";
     private string _adapterStatusText = "Demo Mode is always available. RAW mode requires Npcap + Administrator.";
     private PtpRuntimeCounters _counters = new();
+    private string _healthOverallText = "WAITING";
+    private string _healthSummaryText = "No monitor data yet";
+    private int _healthPassCount;
+    private int _healthWarnCount;
+    private int _healthFailCount;
 
     public MainViewModel()
     {
@@ -34,11 +42,13 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         StopCommand = new AsyncRelayCommand(_ => StopAsync(), _ => _engine is not null);
         ScenarioCommand = new RelayCommand(p => _engine?.ApplyScenario(p?.ToString() ?? string.Empty), _ => _engine is not null);
         ResetScenarioCommand = new RelayCommand(_ => _engine?.ResetScenarios(), _ => _engine is not null);
+        ResetHealthCards();
         RefreshAdapters();
     }
 
     public ObservableCollection<NetworkAdapterInfoDto> Adapters { get; } = new();
     public ObservableCollection<PtpEventLogItem> Events { get; } = new();
+    public ObservableCollection<HealthCheckCardViewModel> HealthChecks { get; } = new();
 
     public ICommand RefreshCommand { get; }
     public ICommand StartCommand { get; }
@@ -112,6 +122,12 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     public long PdelayFollowUpTx => _counters.PdelayRespFollowUpTx;
     public long Errors => _counters.PacketErrors;
 
+    public string HealthOverallText { get => _healthOverallText; private set => Set(ref _healthOverallText, value); }
+    public string HealthSummaryText { get => _healthSummaryText; private set => Set(ref _healthSummaryText, value); }
+    public int HealthPassCount { get => _healthPassCount; private set => Set(ref _healthPassCount, value); }
+    public int HealthWarnCount { get => _healthWarnCount; private set => Set(ref _healthWarnCount, value); }
+    public int HealthFailCount { get => _healthFailCount; private set => Set(ref _healthFailCount, value); }
+
     private void RefreshAdapters()
     {
         Adapters.Clear();
@@ -155,6 +171,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         _engine = new PtpMasterEngine(transport);
         _engine.EventLogged += OnEngineEvent;
         _engine.CountersUpdated += OnCountersUpdated;
+        _engine.MonitorSnapshotUpdated += OnMonitorSnapshotUpdated;
         _engine.StateChanged += (_, state) => Dispatch(() => StateText = state.ToString().ToUpperInvariant());
 
         var options = new PtpEngineOptions
@@ -178,6 +195,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         {
             Events.Clear();
             ResetCounters();
+            ResetHealthCards();
             await _engine.StartAsync(options);
             AddEvent("INFO", "MODE", SelectedAdapter.IsDemo
                 ? "Demo transport started. Counters will move, but no network packets are transmitted."
@@ -207,6 +225,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         {
             _engine.EventLogged -= OnEngineEvent;
             _engine.CountersUpdated -= OnCountersUpdated;
+            _engine.MonitorSnapshotUpdated -= OnMonitorSnapshotUpdated;
             await _engine.DisposeAsync();
             _engine = null;
         }
@@ -214,6 +233,12 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
     private void OnEngineEvent(object? sender, PtpEngineEventArgs e) => Dispatch(() => AddEvent(e.Item));
 
+    private void OnMonitorSnapshotUpdated(object? sender, PtpMonitorSnapshot snapshot)
+    {
+        var domain = (byte)Math.Clamp(DomainNumber, 0, 255);
+        var health = _healthValidator.Evaluate(snapshot, PtpHealthValidatorOptions.ForLabDomain(domain));
+        Dispatch(() => UpdateHealthCards(health));
+    }
 
     private void ResetCounters()
     {
@@ -242,6 +267,57 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         });
     }
 
+    private void ResetHealthCards()
+    {
+        HealthOverallText = "WAITING";
+        HealthSummaryText = "Start RAW/Monitor traffic to evaluate PTP health.";
+        HealthPassCount = 0;
+        HealthWarnCount = 0;
+        HealthFailCount = 0;
+
+        HealthChecks.Clear();
+        foreach (var name in new[]
+        {
+            "PTP Visibility",
+            "Domain Match",
+            "GM Stability",
+            "Follow_Up Pairing",
+            "Pdelay Activity",
+            "Sequence Continuity",
+            "Analyzer Readiness"
+        })
+        {
+            HealthChecks.Add(new HealthCheckCardViewModel
+            {
+                Name = name,
+                Level = "INFO",
+                Summary = "Waiting",
+                Detail = "No monitor data yet."
+            });
+        }
+    }
+
+    private void UpdateHealthCards(PtpHealthSnapshot health)
+    {
+        HealthOverallText = health.OverallLevel.ToString().ToUpperInvariant();
+        HealthPassCount = health.PassCount;
+        HealthWarnCount = health.WarningCount;
+        HealthFailCount = health.FailCount;
+        HealthSummaryText = $"PASS {health.PassCount} · WARN {health.WarningCount} · FAIL {health.FailCount}";
+
+        HealthChecks.Clear();
+        foreach (var check in health.Checks)
+        {
+            HealthChecks.Add(new HealthCheckCardViewModel
+            {
+                Name = check.Name,
+                Level = check.Level.ToString().ToUpperInvariant(),
+                Summary = check.Summary,
+                Detail = check.Detail
+            });
+        }
+    }
+
     private void AddEvent(string severity, string source, string message) => AddEvent(new PtpEventLogItem { Timestamp = DateTime.Now, Severity = severity, Source = source, Message = message });
 
     private void AddEvent(PtpEventLogItem item)
@@ -266,4 +342,12 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     }
 
     public async ValueTask DisposeAsync() => await DisposeEngineAsync();
+}
+
+public sealed class HealthCheckCardViewModel
+{
+    public string Name { get; init; } = string.Empty;
+    public string Level { get; init; } = "INFO";
+    public string Summary { get; init; } = string.Empty;
+    public string Detail { get; init; } = string.Empty;
 }
