@@ -1,0 +1,17 @@
+{
+  "profile": "AnalyzerTest",
+  "transport": "DemoOrLayer2Ethernet",
+  "domainNumber": 0,
+  "enableAnnounce": true,
+  "enableSync": true,
+  "enableFollowUp": true,
+  "enablePdelayResponder": true,
+  "enabledScenarios": [
+    "GM_LOST",
+    "MISSING_FOLLOW_UP",
+    "CLOCK_DEGRADED",
+    "SEQUENCE_JUMP",
+    "GM_SWITCH",
+    "STOP_PDELAY"
+  ]
+}

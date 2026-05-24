@@ -1,0 +1,4 @@
+eth.type == 0x88f7
+ptp
+eth.dst == 01:1b:19:00:00:00
+eth.dst == 01:80:c2:00:00:0e

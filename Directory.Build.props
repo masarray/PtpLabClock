@@ -1,0 +1,13 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<Project>
+  <PropertyGroup>
+    <Authors>Ari Sulistiono</Authors>
+    <Company>Process Bus Timing Lab</Company>
+    <Product>Process Bus Timing Lab</Product>
+    <Copyright>Copyright (C) 2026 Ari Sulistiono</Copyright>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+</Project>

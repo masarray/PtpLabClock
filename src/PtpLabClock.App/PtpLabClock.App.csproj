@@ -1,0 +1,16 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PtpLabClock.Core\PtpLabClock.Core.csproj" />
+    <ProjectReference Include="..\PtpLabClock.Protocol\PtpLabClock.Protocol.csproj" />
+    <ProjectReference Include="..\PtpLabClock.Pcap\PtpLabClock.Pcap.csproj" />
+    <ProjectReference Include="..\PtpLabClock.Config\PtpLabClock.Config.csproj" />
+  </ItemGroup>
+</Project>

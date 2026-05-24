@@ -1,0 +1,14 @@
+{
+  "profile": "IEC61850_9_3_Lab",
+  "transport": "Layer2Ethernet",
+  "etherType": "0x88F7",
+  "delayMechanism": "P2P",
+  "domainNumber": 0,
+  "syncIntervalMs": 1000,
+  "announceIntervalMs": 1000,
+  "twoStep": true,
+  "pdelayResponder": true,
+  "clockClass": 248,
+  "clockAccuracy": "Unknown",
+  "safetyScope": "Lab simulation only; not a certified timing source"
+}

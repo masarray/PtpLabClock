@@ -1,0 +1,12 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.cache
+TestResults/
+artifacts/
+*.nupkg
+*.snupkg
+*.pcapng
+*.pcap

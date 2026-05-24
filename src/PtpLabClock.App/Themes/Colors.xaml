@@ -1,0 +1,29 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="BgTopColor">#F7FAFF</Color>
+    <Color x:Key="BgBottomColor">#EEF4FB</Color>
+    <SolidColorBrush x:Key="BgBrush" Color="#F4F7FB"/>
+    <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PanelGlassBrush" Color="#EFFFFFFF"/>
+    <SolidColorBrush x:Key="PanelSoftBrush" Color="#F3F7FC"/>
+    <SolidColorBrush x:Key="PanelWarmBrush" Color="#FFF9F0"/>
+    <SolidColorBrush x:Key="TextBrush" Color="#132033"/>
+    <SolidColorBrush x:Key="MutedTextBrush" Color="#69758A"/>
+    <SolidColorBrush x:Key="SubtleTextBrush" Color="#8A96A8"/>
+    <SolidColorBrush x:Key="LineBrush" Color="#DDE7F2"/>
+    <SolidColorBrush x:Key="LineSoftBrush" Color="#EEF3F8"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="#2563EB"/>
+    <SolidColorBrush x:Key="AccentDarkBrush" Color="#1D4ED8"/>
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#EAF1FF"/>
+    <SolidColorBrush x:Key="CyanBrush" Color="#0891B2"/>
+    <SolidColorBrush x:Key="CyanSoftBrush" Color="#E6F7FB"/>
+    <SolidColorBrush x:Key="RunBrush" Color="#0F9F6E"/>
+    <SolidColorBrush x:Key="RunSoftBrush" Color="#E8F8F2"/>
+    <SolidColorBrush x:Key="WarnBrush" Color="#D97706"/>
+    <SolidColorBrush x:Key="WarnSoftBrush" Color="#FFF4DE"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="#DC2626"/>
+    <SolidColorBrush x:Key="DangerSoftBrush" Color="#FEECEC"/>
+    <SolidColorBrush x:Key="PurpleBrush" Color="#7C3AED"/>
+    <SolidColorBrush x:Key="PurpleSoftBrush" Color="#F2ECFF"/>
+</ResourceDictionary>
