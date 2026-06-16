@@ -1,0 +1,10 @@
+{
+  "name": "Process Bus Timing Lab",
+  "short_name": "PTP Lab",
+  "description": "PTPv2 Layer-2 lab clock simulator and passive timing-health monitor for IEC 61850 Process Bus workflows.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f4f8fb",
+  "theme_color": "#1668e8",
+  "categories": ["engineering", "developer", "utilities"]
+}
