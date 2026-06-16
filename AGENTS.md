@@ -18,9 +18,7 @@ Rules:
 
 1. Keep the `LICENSE` file as the full Apache License 2.0 text.
 2. Keep `Directory.Build.props` with `PackageLicenseExpression=Apache-2.0`.
-3. Add SPDX headers to new source files:
-   - C#: `// SPDX-License-Identifier: Apache-2.0`
-   - XAML/XML: `<!-- SPDX-License-Identifier: Apache-2.0 -->`
+3. Add REUSE/SPDX-compatible Apache-2.0 license headers to new source files. Keep examples out of Markdown prose so REUSE does not parse them as real file metadata.
 4. Do not copy source code from linuxptp, Meinberg, PTPSync, Npcap samples, SharpPcap samples, or other references unless a license review explicitly permits it.
 5. Do not bundle Npcap installer by default. Link to Npcap install instructions instead.
 6. Maintain `THIRD-PARTY-NOTICES.md` whenever dependencies change.
