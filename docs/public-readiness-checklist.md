@@ -13,9 +13,9 @@ Use this checklist before publishing a release.
 
 ## Release quality
 
-- [ ] Framework-dependent WPF package exists.
-- [ ] Self-contained WPF package exists.
-- [ ] Self-contained console package exists.
+- [ ] Direct portable desktop EXE exists.
+- [ ] Direct portable console EXE exists.
+- [ ] ZIP packages with license and notices exist.
 - [ ] `checksums.txt` is attached.
 - [ ] `PtpLabClock.release-sbom.spdx.json` is attached.
 - [ ] Protocol validation PCAP is attached.
@@ -34,3 +34,12 @@ Use this checklist before publishing a release.
 - [ ] README does not claim certified grandmaster behavior.
 - [ ] Docs do not claim relay-acceptance timing accuracy.
 - [ ] RAW mode is described as lab-only and software-timestamped.
+
+
+## Product proof
+
+- [ ] README displays the real dashboard screenshot.
+- [ ] GitHub Pages displays the real dashboard screenshot.
+- [ ] Demo GIF is present and referenced from README or landing page.
+- [ ] Golden PCAP fixtures are present and tested.
+- [ ] RAW NIC compatibility matrix exists and has at least one real adapter result before public claims are broadened.

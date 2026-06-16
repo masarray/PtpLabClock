@@ -55,5 +55,40 @@ Get-ChildItem .\artifacts -File | Where-Object { $_.Extension -in ".exe", ".zip"
   "$($hash.Hash.ToLowerInvariant())  $($_.Name)"
 } | Set-Content .\artifacts\checksums.txt -Encoding UTF8
 
+
+$appHash = (Get-FileHash .\artifacts\PtpLabClock.App.win-x64.portable.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+$consoleHash = (Get-FileHash .\artifacts\PtpLabClock.Console.win-x64.portable.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+$createdUtc = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+
+@"
+## Process Bus Timing Lab local portable build
+
+Windows PTP lab simulator and timing-health monitor for IEC 61850 FAT, SAT, analyzer validation, and Process Bus troubleshooting.
+
+### Verification
+
+````powershell
+Get-FileHash .\PtpLabClock.App.win-x64.portable.exe -Algorithm SHA256
+Get-Content .\checksums.txt
+````
+
+Expected direct EXE hashes from this local build:
+
+````text
+$appHash  PtpLabClock.App.win-x64.portable.exe
+$consoleHash  PtpLabClock.Console.win-x64.portable.exe
+````
+
+### Known limitations
+
+- Portable EXE artifacts are not code-signed yet and may trigger Windows SmartScreen on first run.
+- RAW NIC mode depends on Npcap, adapter driver support, and local security policy.
+- Local self-capture failure does not always prove packet transmission failed; verify with external capture when possible.
+- Software timestamps are diagnostic only and are not hardware-timestamped timing evidence.
+- This project is not a certified PTP grandmaster, GPS clock, or relay-acceptance timing source.
+
+_Generated locally at $createdUtc._
+"@ | Set-Content .\artifacts\release-notes.md -Encoding UTF8
+
 Write-Host "Portable release files written to artifacts/:" -ForegroundColor Green
 Get-ChildItem .\artifacts -File | Sort-Object Name | Select-Object Name, Length | Format-Table -AutoSize

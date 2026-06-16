@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright (C) 2026 Ari Sulistiono")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+534920e6676009d0c52e4b31e8388d4d9c61fdd8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3c9a0670a88bda28ffedb81d4daa8bef013de937")]
 [assembly: System.Reflection.AssemblyProductAttribute("Process Bus Timing Lab")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PtpLabClock.Pcap")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

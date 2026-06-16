@@ -67,3 +67,24 @@
   .wide-shot img { border-radius: 18px; }
   .screenshot-frame .frame-top em { display: none; }
 }
+
+
+.demo-frame {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.82);
+  border-radius: var(--radius-xl);
+  background: rgba(255,255,255,.78);
+  box-shadow: var(--shadow-deep);
+  padding: 12px;
+}
+
+.demo-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: calc(var(--radius-xl) - 12px);
+}
+
+.demo-section {
+  margin-top: -30px;
+}

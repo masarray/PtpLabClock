@@ -34,3 +34,29 @@ eth.type == 0x88f7 or ptp
 ## Safety
 
 This software is a lab simulator and diagnostic companion. It is not a certified timing source, GPS grandmaster, hardware-timestamped clock, or relay-acceptance timing reference.
+
+
+## Verify the download
+
+Use `checksums.txt` from the same release:
+
+```powershell
+Get-FileHash .\PtpLabClock.App.win-x64.portable.exe -Algorithm SHA256
+Get-Content .\checksums.txt
+```
+
+The hash must match the corresponding file line.
+
+## Windows SmartScreen
+
+The portable EXE is not code-signed yet. Windows SmartScreen may warn on first run. Verify the SHA256 checksum before running the executable.
+
+## Troubleshooting
+
+If RAW mode does not start or packets are not visible:
+
+1. Confirm Npcap is installed.
+2. Run as Administrator when required.
+3. Prefer wired Ethernet over Wi-Fi/VPN/virtual adapters.
+4. Use external capture or a mirror/TAP port when local self-capture is inconclusive.
+5. Check the online troubleshooting playbook: `docs/raw-nic-troubleshooting.md`.

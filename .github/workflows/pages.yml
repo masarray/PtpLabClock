@@ -32,6 +32,9 @@ jobs:
           test -f docs/app.js
           test -f docs/site.webmanifest
           test -f docs/og-preview.svg
+          test -f docs/assets/ptp-lab-demo.gif
+          test -f docs/assets/ptp-lab-dashboard.webp
+          test -f docs/assets/ptp-lab-dashboard.png
           test -f docs/robots.txt
           test -f docs/sitemap.xml
           grep -q "Process Bus Timing Lab" docs/index.html

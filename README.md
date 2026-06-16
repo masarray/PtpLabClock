@@ -22,6 +22,13 @@ Process Bus Timing Lab helps substation automation engineers see whether PTPv2 L
 
 *The dashboard combines Clock Profile setup, Live Timing Flow counters, Scenario Player actions, VLAN settings, RAW self-test, and Timing Health diagnostics in one compact engineering workspace.*
 
+
+## Quick demo
+
+![Process Bus Timing Lab guided dashboard demo showing live PTP counters, scenario player, timing health, RAW NIC, and VLAN workflow](docs/assets/ptp-lab-demo.gif)
+
+*Guided demo of the main engineering workflow: live timing counters, scenario actions, timing-health diagnostics, and RAW NIC/VLAN setup.*
+
 ## Why this tool exists
 
 In real Process Bus work, a relay, analyzer, or SV injector problem is often diagnosed too late because the timing layer is treated as invisible background infrastructure. Process Bus Timing Lab gives engineers a practical timing workspace for early-stage lab validation:
@@ -55,6 +62,18 @@ When a release tag is published, GitHub Actions creates direct portable EXE arti
 | `PtpLabClock.Console.win-x64.portable.zip` | You want the CLI package with supporting release files. |
 
 Each release also includes `checksums.txt`, `PtpLabClock.release-sbom.spdx.json`, and `ptp-validation.pcap`.
+
+
+## Verify release artifacts
+
+Portable EXE files are not code-signed yet, so Windows SmartScreen may warn on first run. Verify the SHA256 hash from `checksums.txt` before running a downloaded executable.
+
+```powershell
+Get-FileHash .\PtpLabClock.App.win-x64.portable.exe -Algorithm SHA256
+Get-Content .\checksums.txt
+```
+
+See [release verification](docs/release-verification.md) and [release provenance notes](docs/release-provenance.md).
 
 ## 60-second source build
 
@@ -103,6 +122,9 @@ Recommended capture filter for untagged, VLAN, and QinQ Layer-2 PTP:
 ether proto 0x88f7 or (vlan and ether proto 0x88f7) or (vlan and vlan and ether proto 0x88f7)
 ```
 
+If RAW mode does not start or packets are not visible, use the [RAW troubleshooting playbook](docs/raw-nic-troubleshooting.md).
+
+
 ## Who this is for
 
 - IEC 61850 Process Bus engineers.
@@ -134,8 +156,12 @@ Start with the product website and repository docs:
 - [Installation](docs/installation.md)
 - [RAW NIC mode](docs/raw-nic-mode.md)
 - [RAW NIC compatibility matrix](docs/raw-nic-compatibility.md)
+- [RAW NIC troubleshooting playbook](docs/raw-nic-troubleshooting.md)
 - [Protocol validation](docs/protocol-validation.md)
 - [Golden PCAP fixtures](docs/golden-pcap-fixtures.md)
+- [Demo assets](docs/demo-assets.md)
+- [Release verification](docs/release-verification.md)
+- [Release provenance and signing notes](docs/release-provenance.md)
 - [Passive monitor](docs/passive-monitor.md)
 - [Timing health validation](docs/health-validation.md)
 - [Wireshark validation](docs/wireshark-validation.md)

@@ -35,14 +35,14 @@ The product must remain honest about timing capability:
 - [x] Governance and contribution docs.
 - [x] First tagged release with portable EXE artifacts.
 - [x] Real screenshots from the WPF UI are used in README and GitHub Pages.
-- [ ] Short demo GIF or video.
+- [x] Short guided demo GIF based on the real WPF dashboard screenshot.
 - [x] RAW NIC compatibility matrix document and evidence table template.
 - [x] Deterministic golden PCAP fixtures for regression and analyzer smoke checks.
 
 ## Next maturity targets
 
-1. Add a short demo GIF or video for the landing page and README.
-2. Populate the RAW NIC compatibility table with real adapter, driver, and Npcap test results.
-3. Add known-good analyzer screenshots for each golden PCAP fixture.
-4. Add a troubleshooting wizard inside the WPF UI for Npcap permission, adapter, VLAN, and self-capture issues.
-5. Consider code-signing for portable EXE artifacts to reduce Windows SmartScreen friction.
+1. Populate the RAW NIC compatibility table with real adapter, driver, and Npcap test results.
+2. Add known-good analyzer screenshots for each golden PCAP fixture.
+3. Add an in-app troubleshooting wizard for Npcap permission, adapter, VLAN, and self-capture issues.
+4. Consider Authenticode code-signing for portable EXE artifacts to reduce Windows SmartScreen friction.
+5. Add formal artifact attestations and full SBOM generation when repository policy is ready.
