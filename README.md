@@ -8,19 +8,33 @@
 
 **PTP Lab Clock Simulator and Process Bus Timing Monitor for IEC 61850 lab work.**
 
-Process Bus Timing Lab helps substation automation engineers validate PTPv2 Layer-2 visibility, analyzer decoding, VLAN/QinQ packet handling, passive timing-health symptoms, and session evidence exports in a controlled lab network.
+Process Bus Timing Lab is a Windows-friendly **PTPv2 Layer-2 lab simulator**, **IEC 61850 Process Bus timing visibility tool**, and **passive PTP health monitor** for FAT, SAT, commissioning preparation, analyzer validation, VLAN/QinQ verification, and controlled timing-fault scenarios.
 
-**Product website:** https://masarray.github.io/PtpLabClock/
+**Product website:** https://masarray.github.io/PtpLabClock/  
+**Download:** https://github.com/masarray/PtpLabClock/releases  
+**License:** Apache-2.0
 
-It is built for practical engineering workflows:
+## What problem does it solve?
+
+Substation automation engineers often need to know whether the test network actually carries usable PTP traffic before troubleshooting Sampled Values, GOOSE, or protection relay behavior. This project helps answer practical questions quickly:
 
 - “Can Wireshark or my analyzer see PTP on this NIC?”
 - “Are Announce / Sync / Follow_Up / Pdelay frames decoded correctly?”
-- “Is this process-bus VLAN carrying usable PTP traffic?”
-- “Can I generate controlled GM-lost, missing-Follow_Up, sequence-jump, and degraded-clock scenarios?”
-- “Can I export a short PDF/ZIP evidence package for discussion?”
+- “Is this process-bus VLAN carrying visible PTP traffic?”
+- “Can I reproduce GM-lost, missing-Follow_Up, sequence-jump, or degraded-clock symptoms?”
+- “Can I export a short PDF/ZIP evidence package for engineering discussion?”
 
 > **Safety boundary:** this project is a lab simulator and diagnostic companion. It is **not** a certified timing source, GPS grandmaster, hardware-timestamped clock, or relay-acceptance timing reference.
+
+## Best-fit use cases
+
+- IEC 61850 Process Bus lab validation.
+- IEC/IEEE 61850-9-3 visibility checks.
+- PTPv2 Layer-2 analyzer validation.
+- Sampled Values / GOOSE timing-context troubleshooting.
+- VLAN and QinQ PTP frame visibility testing.
+- Npcap / SharpPcap RAW NIC smoke testing on Windows.
+- FAT/SAT preparation and issue evidence export.
 
 ## Highlights
 
@@ -36,17 +50,18 @@ It is built for practical engineering workflows:
 - xUnit protocol regression tests and GitHub Actions CI.
 - Apache-2.0 license.
 
-## Download
+## Portable release packages
 
-Use the GitHub Releases page after publishing tags:
+Release automation produces direct self-contained Windows single-file EXE artifacts:
 
 | Package | Use when |
 |---|---|
-| `PtpLabClock.App.win-x64.self-contained.zip` | You want the easiest Windows desktop app package. |
-| `PtpLabClock.App.win-x64.framework-dependent.zip` | You already have .NET 8 Desktop Runtime installed and want a smaller package. |
-| `PtpLabClock.Console.win-x64.self-contained.zip` | You want CLI validation, RAW self-test, monitor, or CI-style workflows. |
+| `PtpLabClock.App.win-x64.portable.exe` | You want the easiest Windows desktop app: download and run. |
+| `PtpLabClock.Console.win-x64.portable.exe` | You want CLI validation, RAW self-test, monitor, or scripting. |
+| `PtpLabClock.App.win-x64.portable.zip` | You want the app EXE bundled with license notices and README. |
+| `PtpLabClock.Console.win-x64.portable.zip` | You want the CLI EXE bundled with license notices and README. |
 
-Each release also includes `checksums.txt` and `PtpLabClock.release-sbom.spdx.json`.
+Each release also includes `checksums.txt`, `PtpLabClock.release-sbom.spdx.json`, and a protocol validation PCAP artifact.
 
 ## 60-second source build
 
@@ -63,6 +78,12 @@ Run the WPF app:
 
 ```powershell
 dotnet run --project .\src\PtpLabClock.App
+```
+
+Build local portable EXE artifacts:
+
+```powershell
+.\tools\scripts\package-release.ps1
 ```
 
 ## RAW NIC quick start
@@ -106,12 +127,12 @@ src/PtpLabClock.Config     JSON settings/profile helpers
 src/PtpLabClock.Console    CLI validation, monitor, RAW self-test
 src/PtpLabClock.Reporting  PDF/session evidence export
 tests/                     xUnit regression tests
-.github/workflows          CI, security, release automation
+.github/workflows          CI, security, release, and GitHub Pages automation
 ```
 
 ## Documentation
 
-Start with [`docs/index.md`](docs/index.md) for repository documentation and the public landing page at [`docs/index.html`](docs/index.html):
+Start with [`docs/index.md`](docs/index.md) for repository documentation and the SEO landing page at [`docs/index.html`](docs/index.html):
 
 - [Quick start](docs/quick-start.md)
 - [Installation](docs/installation.md)
@@ -130,6 +151,10 @@ Start with [`docs/index.md`](docs/index.md) for repository documentation and the
 - Contribution guide: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 - Third-party notices: [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 - Clean-room rule: do not copy incompatible or proprietary source code, UI assets, packet fixtures, or documentation text.
+
+## Search terms this project intentionally serves
+
+`PTP lab clock`, `IEC 61850 PTP monitor`, `IEC 61850-9-3 lab`, `PTPv2 Layer 2 analyzer`, `Process Bus timing monitor`, `Sampled Values timing`, `GOOSE timing context`, `VLAN PTP`, `QinQ PTP`, `Npcap PTP`, `SharpPcap raw Ethernet`, `FAT SAT commissioning PTP`.
 
 ## Limitations
 
