@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 using PtpLabClock.Core.Monitor;
 using PtpLabClock.Protocol.Enums;
 
@@ -151,9 +151,9 @@ public sealed class PtpTimingHealthValidator
 
         var anomalyCount = snapshot.Sources.Sum(s => s.SequenceAnomalyCount);
         if (anomalyCount == 0)
-            return Pass("sequence", "Sequence Continuity", "No simple sequence anomaly detected", "Lightweight check only; validates adjacent same-message sequence progression per source.");
+            return Pass("sequence", "Sequence Continuity", "No simple sequence anomaly detected", "Lightweight check only; validates per-message-type sequence progression per source.");
 
-        return Warn("sequence", "Sequence Continuity", $"Sequence anomaly count={anomalyCount}", "Adjacent same-message sequence jump or duplicate detected. Review event timeline / Wireshark.");
+        return Warn("sequence", "Sequence Continuity", $"Sequence anomaly count={anomalyCount}", "Per-message-type sequence jump or duplicate detected. Review event timeline / Wireshark.");
     }
 
     private static PtpHealthCheckResult CheckAnalyzerReadiness(IReadOnlyList<PtpHealthCheckResult> checks)

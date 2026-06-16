@@ -1,0 +1,45 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Windows build
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Validate repository layout
+        shell: pwsh
+        run: .\tools\scripts\validate-layout.ps1
+
+      - name: Restore
+        run: dotnet restore .\PtpLabClock.sln
+
+      - name: Build
+        run: dotnet build .\PtpLabClock.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test .\PtpLabClock.sln -c Release --no-build --logger trx --results-directory TestResults
+
+      - name: Protocol smoke validation
+        run: dotnet run --project .\src\PtpLabClock.Console --configuration Release -- --validate-protocol --domain 0
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults

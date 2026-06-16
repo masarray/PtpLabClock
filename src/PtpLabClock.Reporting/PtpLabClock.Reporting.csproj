@@ -1,4 +1,4 @@
-<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="QuestPDF" Version="2024.3.9" />
     <ProjectReference Include="..\PtpLabClock.Core\PtpLabClock.Core.csproj" />
   </ItemGroup>
 </Project>

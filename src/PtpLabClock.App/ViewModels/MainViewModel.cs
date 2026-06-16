@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -19,7 +19,6 @@ namespace PtpLabClock.App.ViewModels;
 
 public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 {
-    private readonly NpcapAdapterProvider _adapterProvider = new();
     private readonly PtpTimingHealthValidator _healthValidator = new();
     private PtpMasterEngine? _engine;
     private NetworkAdapterInfoDto? _selectedAdapter;
@@ -29,7 +28,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private int _domainNumber;
     private int _clockClass = 248;
     private string _stateText = "STOPPED";
-    private string _adapterStatusText = "Demo Mode is always available. RAW mode requires Npcap + Administrator.";
+    private string _adapterStatusText = "Demo Mode is always available. RAW mode uses Npcap/SharpPcap and requires administrator privileges on Windows.";
     private PtpRuntimeCounters _counters = new();
     private string _healthOverallText = "WAITING";
     private string _healthSummaryText = "No monitor data yet";
@@ -121,7 +120,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     public string AdapterModeText => SelectedAdapter?.IsDemo == true ? "DEMO MODE" : "RAW PACKET MODE";
     public string AdapterModeDetail => SelectedAdapter?.IsDemo == true
         ? "UI + engine simulation. No packets are sent to the network."
-        : "Npcap raw Ethernet. Run elevated for transmit/capture.";
+        : "RAW Ethernet via Npcap. Sends and captures Layer-2 PTP frames on the selected adapter.";
 
     public long AnnounceTx => _counters.AnnounceTx;
     public long SyncTx => _counters.SyncTx;
@@ -151,12 +150,12 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
         try
         {
-            foreach (var adapter in _adapterProvider.GetAdapters())
+            foreach (var adapter in GetRawAdapters())
                 Adapters.Add(adapter);
 
-            SelectedAdapter = Adapters.FirstOrDefault(a => !a.IsDemo) ?? demo;
-            AdapterStatusText = $"{Adapters.Count - 1} raw adapter(s) detected. Demo Mode remains available for UI validation.";
-            AddEvent("INFO", "ADAPTER", $"{Adapters.Count - 1} raw adapter(s) detected. Use Demo Mode if Npcap/Admin is not ready.");
+            SelectedAdapter = demo;
+            AdapterStatusText = $"{Adapters.Count - 1} RAW adapter candidate(s) listed. Demo Mode is selected by default; RAW transport uses Npcap/SharpPcap in this build.";
+            AddEvent("INFO", "ADAPTER", $"{Adapters.Count - 1} RAW adapter candidate(s) listed. Select a real Ethernet adapter for RAW packet injection, or keep Demo Mode for UI validation.");
         }
         catch (Exception ex)
         {
@@ -169,13 +168,29 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         RaiseCommandStates();
     }
 
+
+    private static IReadOnlyList<NetworkAdapterInfoDto> GetRawAdapters()
+    {
+        try
+        {
+            return new NpcapAdapterProvider().GetAdapters();
+        }
+        catch
+        {
+            return Array.Empty<NetworkAdapterInfoDto>();
+        }
+    }
+
+    private static IPtpTransport CreateTransport(NetworkAdapterInfoDto adapter)
+    {
+        return adapter.IsDemo ? new MockPtpTransport() : new NpcapPtpTransport();
+    }
+
     private async Task StartAsync()
     {
         if (SelectedAdapter is null) return;
 
-        IPtpTransport transport = SelectedAdapter.IsDemo
-            ? new MockPtpTransport()
-            : new NpcapPtpTransport();
+        IPtpTransport transport = CreateTransport(SelectedAdapter);
 
         _engine = new PtpMasterEngine(transport);
         _engine.EventLogged += OnEngineEvent;
@@ -211,13 +226,13 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             await _engine.StartAsync(options);
             AddEvent("INFO", "MODE", SelectedAdapter.IsDemo
                 ? "Demo transport started. Counters will move, but no network packets are transmitted."
-                : "Raw Npcap transport started. Validate packets in Wireshark with eth.type == 0x88f7.");
+                : "RAW transport started. Validate packets in Wireshark with eth.type == 0x88f7.");
             RaiseCommandStates();
         }
         catch (Exception ex)
         {
             AddEvent("ERROR", "START", ex.Message);
-            AddEvent("INFO", "HINT", "For RAW mode: install Npcap, use x64, and run Visual Studio/app as Administrator. Demo Mode should run without those requirements.");
+            AddEvent("INFO", "HINT", "RAW start failed. Run as Administrator, confirm Npcap is installed, select a wired Ethernet adapter, and verify Wireshark can capture on the same NIC.");
             await DisposeEngineAsync();
             StateText = "STOPPED";
             RaiseCommandStates();
@@ -287,7 +302,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private void ResetHealthCards()
     {
         HealthOverallText = "WAITING";
-        HealthSummaryText = "Start RAW/Monitor traffic to evaluate PTP health.";
+        HealthSummaryText = "Start Demo/Monitor traffic to evaluate PTP health.";
         HealthPassCount = 0;
         HealthWarnCount = 0;
         HealthFailCount = 0;

@@ -1,4 +1,4 @@
-<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 <Window x:Class="PtpLabClock.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -97,7 +97,7 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="PTP Lab Clock Simulator" FontFamily="{StaticResource AppDisplayFont}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <Border Background="#EFF4FF" BorderBrush="#DCE7FF" BorderThickness="1" CornerRadius="11" Padding="9,3" Margin="10,0,0,0">
-                            <TextBlock Text="GPLv3 • LAB TIMING SUITE" Style="{StaticResource KickerText}" Foreground="{StaticResource AccentBrush}"/>
+                            <TextBlock Text="Apache-2.0 • LAB TIMING SUITE" Style="{StaticResource KickerText}" Foreground="{StaticResource AccentBrush}"/>
                         </Border>
                     </StackPanel>
                     <TextBlock Text="Synthetic IEC 61850-9-3 timing simulator for quick visibility, analyzer validation, and fault scenario testing." Style="{StaticResource MutedBody}" Margin="0,5,0,0"/>

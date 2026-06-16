@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 using PtpLabClock.Protocol.Enums;
 
 namespace PtpLabClock.Core.Monitor;
@@ -19,10 +19,16 @@ public sealed class PtpSourceClockState
     public long PdelayRespFollowUpCount { get; set; }
     public long OtherCount { get; set; }
     public long SequenceAnomalyCount { get; set; }
+    public Dictionary<PtpMessageType, ushort> LastSequenceByType { get; private set; } = new();
 
     public bool IsLive(DateTime now, TimeSpan timeout) => now - LastSeen <= timeout;
 
     public long TotalCount => AnnounceCount + SyncCount + FollowUpCount + PdelayReqCount + PdelayRespCount + PdelayRespFollowUpCount + OtherCount;
 
-    public PtpSourceClockState Clone() => (PtpSourceClockState)MemberwiseClone();
+    public PtpSourceClockState Clone()
+    {
+        var clone = (PtpSourceClockState)MemberwiseClone();
+        clone.LastSequenceByType = new Dictionary<PtpMessageType, ushort>(LastSequenceByType);
+        return clone;
+    }
 }

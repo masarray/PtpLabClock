@@ -12,18 +12,19 @@ The product is **not** a GPS/PTP grandmaster replacement. It is a Windows-friend
 
 ## License Direction
 
-The repository is licensed as **GPL-3.0-or-later**.
+The repository is licensed as **Apache-2.0**.
 
 Rules:
 
-1. Keep the `LICENSE` file as the full GPLv3 text.
-2. Keep `Directory.Build.props` with `PackageLicenseExpression=GPL-3.0-or-later`.
+1. Keep the `LICENSE` file as the full Apache License 2.0 text.
+2. Keep `Directory.Build.props` with `PackageLicenseExpression=Apache-2.0`.
 3. Add SPDX headers to new source files:
-   - C#: `// SPDX-License-Identifier: GPL-3.0-or-later`
-   - XAML/XML: `<!-- SPDX-License-Identifier: GPL-3.0-or-later -->`
-4. Do not copy source code from linuxptp, Meinberg, or other references unless a license review explicitly permits it.
+   - C#: `// SPDX-License-Identifier: Apache-2.0`
+   - XAML/XML: `<!-- SPDX-License-Identifier: Apache-2.0 -->`
+4. Do not copy source code from linuxptp, Meinberg, PTPSync, Npcap samples, SharpPcap samples, or other references unless a license review explicitly permits it.
 5. Do not bundle Npcap installer by default. Link to Npcap install instructions instead.
 6. Maintain `THIRD-PARTY-NOTICES.md` whenever dependencies change.
+7. Keep Demo Mode and protocol validation independent from any raw packet dependency.
 
 ## Clean-Room Reference Model
 
@@ -66,7 +67,7 @@ PtpLabClock.Protocol
   PTP header/body serialization, Ethernet frame builder, parser/validator.
 
 PtpLabClock.Pcap
-  Npcap/SharpPcap adapter discovery, capture, injection, BPF filter handling.
+  RAW packet transport boundary. Keep any future Npcap/wrapper implementation isolated here after license review.
 
 PtpLabClock.Config
   JSON profile/settings storage only.
@@ -81,7 +82,7 @@ PtpLabClock.Console
 
 Status: active.
 
-- GPL-3.0-or-later license.
+- Apache-2.0 license.
 - Clean-room policy.
 - Safety disclaimer.
 - Demo Mode must always work without Npcap.
@@ -244,7 +245,7 @@ Visual design is locked unless a change is strictly required for usability. New 
 - Visual design is locked unless a change directly supports test evidence visibility.
 - Prefer byte-level protocol validation and Wireshark-verifiable outputs over new visual features.
 - PCAP files must be classic Ethernet PCAP unless pcapng metadata becomes necessary.
-- Keep recorder code dependency-free and simple; do not introduce heavy capture frameworks beyond Npcap/SharpPcap already used by transport.
+- Keep recorder code dependency-free and simple; do not introduce heavy capture frameworks. Any future packet wrapper must stay isolated in `PtpLabClock.Pcap` after license review.
 - Use `--validate-protocol --export-pcap` for deterministic builder evidence before live NIC testing.
 - Use `--record-pcap` for live TX/RX evidence capture during raw adapter tests.
 
@@ -278,9 +279,9 @@ Engine direction after v13:
 
 ## v16 PDF Report Direction
 
-Visual design remains locked. v16 adds `PtpLabClock.Reporting`, a QuestPDF-based formatted evidence report module. Keep this module isolated from Core so protocol/engine code does not depend on PDF rendering. Do not overclaim timing accuracy. All generated reports must preserve lab-only safety wording.
+Visual design remains locked. v16 adds `PtpLabClock.Reporting`, an isolated evidence report module. Keep this module isolated from Core so protocol/engine code does not depend on PDF rendering. Do not overclaim timing accuracy. All generated reports must preserve lab-only safety wording.
 
-QuestPDF is used for code-first PDF generation. Set `QuestPDF.Settings.License = LicenseType.Community` before generating a report and keep third-party notices updated.
+The current report generator uses a small internal Apache-2.0 PDF writer to avoid external PDF licensing friction. If a third-party PDF package is added later, update `THIRD-PARTY-NOTICES.md` and review license compatibility first.
 
 
 ## v17 WPF Export Report

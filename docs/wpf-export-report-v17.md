@@ -12,4 +12,4 @@ This step adds a compact **Export PDF** action to the WPF control bar.
 
 ## Notes
 
-QuestPDF is used through the reporting project abstraction. The PDF report remains lab evidence only and is not a timing accuracy certificate.
+internal PDF writer is used through the reporting project abstraction. The PDF report remains lab evidence only and is not a timing accuracy certificate.

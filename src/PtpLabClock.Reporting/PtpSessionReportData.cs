@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 using PtpLabClock.Core.Diagnostics;
 using PtpLabClock.Core.Health;
 using PtpLabClock.Core.Monitor;

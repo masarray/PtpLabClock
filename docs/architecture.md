@@ -29,7 +29,7 @@ No packets leave the machine. Useful for UI validation, training, and engine-loo
 
 ### RAW Npcap Mode
 
-Sends and receives Layer-2 Ethernet frames using Npcap/SharpPcap. Requires Npcap, admin rights, and a suitable adapter.
+Reserved boundary for Layer-2 Ethernet capture/injection. The current Apache-2.0 package does not bundle a packet driver wrapper; future real RAW support must stay isolated here after license review.
 
 ## Future Runtime Modes
 

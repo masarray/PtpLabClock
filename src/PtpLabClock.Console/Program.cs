@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 using PtpLabClock.Core.Diagnostics;
 using PtpLabClock.Core.Engine;
 using PtpLabClock.Core.Health;
@@ -20,7 +20,16 @@ if (args.Contains("--validate-protocol"))
     return;
 }
 
-var adapters = new NpcapAdapterProvider().GetAdapters();
+IReadOnlyList<PtpLabClock.Core.Abstractions.NetworkAdapterInfoDto> adapters;
+try
+{
+    adapters = new NpcapAdapterProvider().GetAdapters();
+}
+catch (Exception ex)
+{
+    adapters = Array.Empty<PtpLabClock.Core.Abstractions.NetworkAdapterInfoDto>();
+    Console.Error.WriteLine($"Adapter discovery failed: {ex.Message}");
+}
 
 if (args.Contains("--list") || args.Length == 0)
 {
@@ -28,6 +37,8 @@ if (args.Contains("--list") || args.Length == 0)
     for (var i = 0; i < adapters.Count; i++)
         Console.WriteLine($"[{i}] {adapters[i].Description}\n    {adapters[i].Id}");
     Console.WriteLine();
+    if (adapters.Count == 0)
+        Console.WriteLine("No RAW adapter candidates were exposed. Demo Mode and --validate-protocol still work without Npcap.");
     Console.WriteLine("Run examples:");
     Console.WriteLine("dotnet run -- --adapter-index 0 --domain 0 --profile iec61850");
     Console.WriteLine("dotnet run -- --adapter-index 0 --domain 0 --record-pcap .\\captures\\ptp-live.pcap");

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 using PtpLabClock.Core.Engine;
 using PtpLabClock.Protocol.Enums;
 
@@ -104,13 +104,14 @@ public sealed class PtpPassiveMonitor
             _sources[key] = source;
         }
 
-        if (source.TotalCount > 0 && source.LastMessageType == message.MessageType)
+        if (source.LastSequenceByType.TryGetValue(message.MessageType, out var lastSequenceForType))
         {
-            var expected = unchecked((ushort)(source.LastSequenceId + 1));
-            if (message.SequenceId != expected && message.SequenceId != source.LastSequenceId)
+            var expected = unchecked((ushort)(lastSequenceForType + 1));
+            if (message.SequenceId != expected && message.SequenceId != lastSequenceForType)
                 source.SequenceAnomalyCount++;
         }
 
+        source.LastSequenceByType[message.MessageType] = message.SequenceId;
         source.LastSeen = message.Timestamp;
         source.LastMessageType = message.MessageType;
         source.LastSequenceId = message.SequenceId;

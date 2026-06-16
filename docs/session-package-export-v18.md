@@ -6,7 +6,7 @@ Process Bus Timing Lab can export a complete session evidence package as a ZIP f
 
 | File | Purpose |
 |---|---|
-| `report.pdf` | Formatted QuestPDF engineering report |
+| `report.pdf` | Formatted engineering report |
 | `session.json` | Machine-readable session snapshot |
 | `events.csv` | Event timeline export |
 | `metadata.json` | Package metadata and recommended Wireshark filter |

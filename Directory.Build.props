@@ -1,13 +1,14 @@
-<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 <Project>
   <PropertyGroup>
     <Authors>Ari Sulistiono</Authors>
     <Company>Process Bus Timing Lab</Company>
     <Product>Process Bus Timing Lab</Product>
     <Copyright>Copyright (C) 2026 Ari Sulistiono</Copyright>
-    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 </Project>

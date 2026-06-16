@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  package:
+    name: Package Windows artifacts
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore .\PtpLabClock.sln
+
+      - name: Test
+        run: dotnet test .\PtpLabClock.sln -c Release --no-restore
+
+      - name: Publish WPF app
+        run: dotnet publish .\src\PtpLabClock.App\PtpLabClock.App.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:PublishReadyToRun=false -o .\artifacts\PtpLabClock.App.win-x64
+
+      - name: Publish console tool
+        run: dotnet publish .\src\PtpLabClock.Console\PtpLabClock.Console.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:PublishReadyToRun=false -o .\artifacts\PtpLabClock.Console.win-x64
+
+      - name: Create ZIP packages
+        shell: pwsh
+        run: |
+          Compress-Archive -Path .\artifacts\PtpLabClock.App.win-x64\* -DestinationPath .\artifacts\PtpLabClock.App.win-x64.zip -Force
+          Compress-Archive -Path .\artifacts\PtpLabClock.Console.win-x64\* -DestinationPath .\artifacts\PtpLabClock.Console.win-x64.zip -Force
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-packages
+          path: .\artifacts\*.zip
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: .\artifacts\*.zip
+          generate_release_notes: true

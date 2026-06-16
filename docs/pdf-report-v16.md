@@ -1,6 +1,6 @@
-# PDF Report v16 - QuestPDF Evidence Report
+# PDF Report v16 - Internal Evidence Report
 
-v16 adds a formatted PDF report module using QuestPDF.
+v16 adds a formatted PDF report module using a small internal writer inside `PtpLabClock.Reporting`.
 
 ## Scope
 
@@ -18,7 +18,7 @@ The report is designed as an engineering evidence pack for lab validation:
 
 It is not an official timing accuracy certificate and must not be used as a GPS/PTP grandmaster acceptance report.
 
-## CLI Usage
+## CLI usage
 
 Run passive health monitor and export PDF on stop:
 
@@ -32,16 +32,6 @@ Optional PCAP recording at the same time:
 dotnet run --project src\PtpLabClock.Console -- --health --adapter-index 0 --domain 0 --record-pcap captures\ptp-health.pcap --export-report captures\ptp-health-report.pdf
 ```
 
-## QuestPDF License Note
+## License note
 
-The project uses QuestPDF via `PtpLabClock.Reporting`. The code sets:
-
-```csharp
-QuestPDF.Settings.License = LicenseType.Community;
-```
-
-Review QuestPDF's current license terms before distributing commercially, especially for companies above the stated revenue threshold.
-
-## Next Step
-
-v17 should integrate report export into WPF with a small button and a save-file dialog, without changing the locked visual system.
+No external PDF rendering package is referenced by the current reporting module. If a third-party PDF library is added later, update `THIRD-PARTY-NOTICES.md` and verify license compatibility before release.

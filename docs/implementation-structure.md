@@ -25,7 +25,7 @@ PtpLabClock.Protocol
   PTPv2 and Ethernet byte-level serialization.
 
 PtpLabClock.Pcap
-  Npcap/SharpPcap transport.
+  RAW transport boundary; no bundled packet wrapper in the current Apache-2.0 source package.
 
 PtpLabClock.Config
   JSON settings and future profiles.

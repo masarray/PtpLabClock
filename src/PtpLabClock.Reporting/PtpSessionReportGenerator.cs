@@ -1,10 +1,7 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
-using PtpLabClock.Core.Diagnostics;
+// SPDX-License-Identifier: Apache-2.0
+using System.Globalization;
+using System.Text;
 using PtpLabClock.Core.Health;
-using PtpLabClock.Core.Monitor;
 
 namespace PtpLabClock.Reporting;
 
@@ -20,324 +17,211 @@ public static class PtpSessionReportGenerator
         if (!string.IsNullOrWhiteSpace(directory))
             Directory.CreateDirectory(directory);
 
-        QuestPDF.Settings.License = LicenseType.Community;
-        new PtpSessionReportDocument(data).GeneratePdf(outputPath);
+        SimplePdfWriter.Write(outputPath, BuildReportLines(data));
+    }
+
+    private static IReadOnlyList<string> BuildReportLines(PtpSessionReportData data)
+    {
+        var lines = new List<string>
+        {
+            data.Title,
+            data.Subtitle,
+            $"Generated : {data.GeneratedAt:yyyy-MM-dd HH:mm:ss}",
+            string.Empty,
+            "EXECUTIVE SUMMARY",
+            $"Project   : {Safe(data.ProjectName, "Lab Validation")}",
+            $"Operator  : {Safe(data.OperatorName, "Not specified")}",
+            $"Adapter   : {Safe(data.AdapterName, "Not specified")}",
+            $"Mode      : {Safe(data.Mode, "Monitor")}",
+            $"Profile   : {Safe(data.ProfileName, "Not specified")}",
+            $"Domain    : {data.DomainNumber}",
+            $"Started   : {data.SessionStartedAt:yyyy-MM-dd HH:mm:ss}",
+            $"Ended     : {data.SessionEndedAt:yyyy-MM-dd HH:mm:ss}",
+            $"Filter    : {data.WiresharkFilter}",
+            string.Empty,
+            "RUNTIME COUNTERS",
+            $"Announce TX             : {data.Counters.AnnounceTx}",
+            $"Sync TX                 : {data.Counters.SyncTx}",
+            $"Follow_Up TX            : {data.Counters.FollowUpTx}",
+            $"Pdelay Req RX           : {data.Counters.PdelayReqRx}",
+            $"Pdelay Resp TX          : {data.Counters.PdelayRespTx}",
+            $"Pdelay Resp Follow_Up TX: {data.Counters.PdelayRespFollowUpTx}",
+            $"Packet Errors           : {data.Counters.PacketErrors}",
+            $"Last TX                 : {Safe(data.Counters.LastTxSummary, "none")}",
+            string.Empty
+        };
+
+        AppendHealth(lines, data);
+        AppendMonitor(lines, data);
+        AppendEvents(lines, data);
+
+        lines.Add(string.Empty);
+        lines.Add("SCOPE NOTE");
+        lines.Add(WrapLine(data.LabDisclaimer, 94));
+        lines.Add("This report documents lab visibility and diagnostic evidence only. It is not a timing accuracy certificate.");
+        return lines;
+    }
+
+    private static void AppendHealth(List<string> lines, PtpSessionReportData data)
+    {
+        lines.Add("TIMING HEALTH");
+        if (data.HealthSnapshot is null)
+        {
+            lines.Add("No health snapshot available.");
+            lines.Add(string.Empty);
+            return;
+        }
+
+        lines.Add($"Overall : {data.HealthSnapshot.OverallText} ({data.HealthSnapshot.Summary})");
+        lines.Add($"Checks  : pass={data.HealthSnapshot.PassCount}, warn={data.HealthSnapshot.WarningCount}, fail={data.HealthSnapshot.FailCount}");
+        foreach (var check in data.HealthSnapshot.Checks.Take(12))
+        {
+            var prefix = check.Level == PtpHealthLevel.Fail ? "FAIL" : check.Level == PtpHealthLevel.Warn ? "WARN" : check.Level.ToString().ToUpperInvariant();
+            lines.Add($"- {prefix,-5} {check.Name}: {check.Summary}");
+        }
+        lines.Add(string.Empty);
+    }
+
+    private static void AppendMonitor(List<string> lines, PtpSessionReportData data)
+    {
+        lines.Add("PASSIVE MONITOR SNAPSHOT");
+        if (data.MonitorSnapshot is null)
+        {
+            lines.Add("No passive monitor snapshot available.");
+            lines.Add(string.Empty);
+            return;
+        }
+
+        var snapshot = data.MonitorSnapshot;
+        lines.Add(snapshot.Summary);
+        lines.Add($"Frames: total={snapshot.TotalFrames}, valid={snapshot.ValidFrames}, invalid={snapshot.InvalidFrames}, domains={snapshot.DetectedDomainCount}, liveSources={snapshot.LiveSourceCount}");
+
+        foreach (var source in snapshot.Sources.Take(12))
+        {
+            lines.Add($"- domain={source.Domain} src={source.ClockIdentity} Ann={source.AnnounceCount} Sync={source.SyncCount} FU={source.FollowUpCount} PdelayReq={source.PdelayReqCount} SeqWarn={source.SequenceAnomalyCount} Last={source.LastMessageType}/{source.LastSequenceId}");
+        }
+        lines.Add(string.Empty);
+    }
+
+    private static void AppendEvents(List<string> lines, PtpSessionReportData data)
+    {
+        lines.Add("EVENT TIMELINE");
+        var events = data.Events.Take(30).ToArray();
+        if (events.Length == 0)
+        {
+            lines.Add("No event timeline items captured.");
+            lines.Add(string.Empty);
+            return;
+        }
+
+        foreach (var item in events)
+            lines.Add($"{item.Timestamp:HH:mm:ss.fff} {item.Severity,-5} {item.Source,-10} {item.Message}");
+
+        lines.Add(string.Empty);
+    }
+
+    private static string Safe(string? value, string fallback) => string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+
+    private static string WrapLine(string text, int width)
+    {
+        if (text.Length <= width) return text;
+        var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var lines = new List<string>();
+        var current = new StringBuilder();
+        foreach (var word in words)
+        {
+            if (current.Length + word.Length + 1 > width)
+            {
+                lines.Add(current.ToString());
+                current.Clear();
+            }
+            if (current.Length > 0) current.Append(' ');
+            current.Append(word);
+        }
+        if (current.Length > 0) lines.Add(current.ToString());
+        return string.Join(Environment.NewLine, lines);
     }
 }
 
-internal sealed class PtpSessionReportDocument : IDocument
+internal static class SimplePdfWriter
 {
-    private readonly PtpSessionReportData _data;
+    private const double PageWidth = 595.28;
+    private const double PageHeight = 841.89;
+    private const double MarginLeft = 36;
+    private const double StartY = 805;
+    private const int MaxLinesPerPage = 52;
 
-    public PtpSessionReportDocument(PtpSessionReportData data) => _data = data;
-
-    public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
-
-    public void Compose(IDocumentContainer container)
+    public static void Write(string outputPath, IReadOnlyList<string> lines)
     {
-        container.Page(page =>
+        var pages = lines.Count == 0
+            ? new[] { Array.Empty<string>() }
+            : lines.Select(Sanitize).Chunk(MaxLinesPerPage).Select(chunk => chunk.ToArray()).ToArray();
+
+        var objects = new List<string>
         {
-            page.Size(PageSizes.A4);
-            page.Margin(28);
-            page.DefaultTextStyle(TextStyle.Default.FontFamily("Segoe UI").FontSize(9.5f).FontColor("#1E293B"));
+            string.Empty,
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            string.Empty,
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
+        };
 
-            page.Header().Element(ComposeHeader);
-            page.Content().PaddingTop(14).Column(column =>
-            {
-                column.Spacing(12);
-                column.Item().Element(ComposeExecutiveSummary);
-                column.Item().Element(ComposeHealthSection);
-                column.Item().Element(ComposeCounterSection);
-                column.Item().Element(ComposeMonitorSection);
-                column.Item().Element(ComposeEventTimeline);
-                column.Item().Element(ComposeScopeNote);
-            });
-            page.Footer().AlignCenter().Text(text =>
-            {
-                text.Span("Process Bus Timing Lab • ").FontColor("#64748B");
-                text.CurrentPageNumber().FontColor("#64748B");
-                text.Span(" / ").FontColor("#64748B");
-                text.TotalPages().FontColor("#64748B");
-            });
-        });
-    }
-
-    private void ComposeHeader(IContainer container)
-    {
-        container.BorderBottom(1).BorderColor("#E2E8F0").PaddingBottom(12).Row(row =>
+        var pageObjectNumbers = new List<int>();
+        foreach (var pageLines in pages)
         {
-            row.RelativeItem().Column(col =>
-            {
-                col.Item().Text(_data.Title).FontSize(19).SemiBold().FontColor("#0F172A");
-                col.Item().PaddingTop(3).Text(_data.Subtitle).FontSize(10).FontColor("#64748B");
-            });
+            var pageObjectNumber = objects.Count;
+            var contentObjectNumber = pageObjectNumber + 1;
+            pageObjectNumbers.Add(pageObjectNumber);
+            objects.Add($"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {PageWidth.ToString(CultureInfo.InvariantCulture)} {PageHeight.ToString(CultureInfo.InvariantCulture)}] /Resources << /Font << /F1 3 0 R >> >> /Contents {contentObjectNumber} 0 R >>");
+            var content = BuildContentStream(pageLines);
+            objects.Add($"<< /Length {Encoding.ASCII.GetByteCount(content)} >>\nstream\n{content}\nendstream");
+        }
 
-            row.ConstantItem(150).AlignRight().Column(col =>
-            {
-                col.Item().AlignRight().Text("SESSION REPORT").FontSize(8).SemiBold().FontColor("#2563EB");
-                col.Item().AlignRight().PaddingTop(4).Text(_data.GeneratedAt.ToString("yyyy-MM-dd HH:mm:ss")).FontSize(8.5f).FontColor("#64748B");
-            });
-        });
-    }
+        objects[2] = $"<< /Type /Pages /Kids [{string.Join(' ', pageObjectNumbers.Select(n => $"{n} 0 R"))}] /Count {pageObjectNumbers.Count} >>";
 
-    private void ComposeExecutiveSummary(IContainer container)
-    {
-        container.Element(Card).Column(col =>
+        var bytes = new List<byte>();
+        AppendAscii(bytes, "%PDF-1.4\n%\u00E2\u00E3\u00CF\u00D3\n");
+        var offsets = new List<int> { 0 };
+
+        for (var i = 1; i < objects.Count; i++)
         {
-            col.Spacing(8);
-            col.Item().Text("Executive Summary").FontSize(13).SemiBold().FontColor("#0F172A");
-            col.Item().Grid(grid =>
-            {
-                grid.Columns(3);
-                grid.Spacing(8);
-                grid.Item().Element(c => InfoTile(c, "Project", _data.ProjectName));
-                grid.Item().Element(c => InfoTile(c, "Adapter", Safe(_data.AdapterName, "Not specified")));
-                grid.Item().Element(c => InfoTile(c, "Mode", _data.Mode));
-                grid.Item().Element(c => InfoTile(c, "Profile", Safe(_data.ProfileName, "Not specified")));
-                grid.Item().Element(c => InfoTile(c, "Domain", _data.DomainNumber.ToString()));
-                grid.Item().Element(c => InfoTile(c, "Wireshark", _data.WiresharkFilter));
-            });
-        });
+            offsets.Add(bytes.Count);
+            AppendAscii(bytes, $"{i} 0 obj\n{objects[i]}\nendobj\n");
+        }
+
+        var xrefOffset = bytes.Count;
+        AppendAscii(bytes, $"xref\n0 {objects.Count}\n");
+        AppendAscii(bytes, "0000000000 65535 f \n");
+        for (var i = 1; i < objects.Count; i++)
+            AppendAscii(bytes, $"{offsets[i]:D10} 00000 n \n");
+
+        AppendAscii(bytes, $"trailer\n<< /Size {objects.Count} /Root 1 0 R >>\nstartxref\n{xrefOffset}\n%%EOF\n");
+        File.WriteAllBytes(outputPath, bytes.ToArray());
     }
 
-    private void ComposeHealthSection(IContainer container)
+    private static string BuildContentStream(IReadOnlyList<string> lines)
     {
-        var health = _data.HealthSnapshot;
-        container.Element(Card).Column(col =>
+        var sb = new StringBuilder();
+        sb.AppendLine("BT");
+        sb.AppendLine("/F1 10 Tf");
+        sb.AppendLine($"{MarginLeft.ToString(CultureInfo.InvariantCulture)} {StartY.ToString(CultureInfo.InvariantCulture)} Td");
+        foreach (var line in lines)
         {
-            col.Spacing(8);
-            col.Item().Row(row =>
-            {
-                row.RelativeItem().Text("Timing Health Validator").FontSize(13).SemiBold().FontColor("#0F172A");
-                row.ConstantItem(112).Element(c => StatusPill(c, health?.OverallLevel ?? PtpHealthLevel.Info, health?.OverallText ?? "WAITING"));
-            });
-
-            if (health is null || health.Checks.Count == 0)
-            {
-                col.Item().Text("No health snapshot available yet.").FontColor("#64748B");
-                return;
-            }
-
-            col.Item().Grid(grid =>
-            {
-                grid.Columns(2);
-                grid.Spacing(7);
-                foreach (var check in health.Checks)
-                    grid.Item().Element(c => HealthCard(c, check));
-            });
-        });
+            sb.Append('(').Append(Escape(line)).AppendLine(") Tj");
+            sb.AppendLine("0 -14 Td");
+        }
+        sb.Append("ET");
+        return sb.ToString();
     }
 
-    private void ComposeCounterSection(IContainer container)
+    private static string Escape(string value) => value.Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)");
+
+    private static string Sanitize(string value)
     {
-        var c = _data.Counters;
-        container.Element(Card).Column(col =>
-        {
-            col.Spacing(8);
-            col.Item().Text("PTP Runtime Counters").FontSize(13).SemiBold().FontColor("#0F172A");
-            col.Item().Grid(grid =>
-            {
-                grid.Columns(4);
-                grid.Spacing(7);
-                grid.Item().Element(x => Metric(x, "Announce TX", c.AnnounceTx.ToString()));
-                grid.Item().Element(x => Metric(x, "Sync TX", c.SyncTx.ToString()));
-                grid.Item().Element(x => Metric(x, "Follow_Up TX", c.FollowUpTx.ToString()));
-                grid.Item().Element(x => Metric(x, "Pdelay Req RX", c.PdelayReqRx.ToString()));
-                grid.Item().Element(x => Metric(x, "Pdelay Resp TX", c.PdelayRespTx.ToString()));
-                grid.Item().Element(x => Metric(x, "Pdelay FU TX", c.PdelayRespFollowUpTx.ToString()));
-                grid.Item().Element(x => Metric(x, "Errors", c.PacketErrors.ToString()));
-                grid.Item().Element(x => Metric(x, "Last Sync Seq", c.LastSyncSeq.ToString()));
-            });
-        });
+        var sb = new StringBuilder(value.Length);
+        foreach (var ch in value)
+            sb.Append(ch is >= ' ' and <= '~' ? ch : '-');
+        return sb.ToString();
     }
 
-    private void ComposeMonitorSection(IContainer container)
-    {
-        var snapshot = _data.MonitorSnapshot;
-        container.Element(Card).Column(col =>
-        {
-            col.Spacing(8);
-            col.Item().Text("Passive Monitor Snapshot").FontSize(13).SemiBold().FontColor("#0F172A");
-
-            if (snapshot is null)
-            {
-                col.Item().Text("No passive monitor snapshot available.").FontColor("#64748B");
-                return;
-            }
-
-            col.Item().Grid(grid =>
-            {
-                grid.Columns(4);
-                grid.Spacing(7);
-                grid.Item().Element(x => Metric(x, "Total Frames", snapshot.TotalFrames.ToString()));
-                grid.Item().Element(x => Metric(x, "Valid Frames", snapshot.ValidFrames.ToString()));
-                grid.Item().Element(x => Metric(x, "Invalid Frames", snapshot.InvalidFrames.ToString()));
-                grid.Item().Element(x => Metric(x, "Live Sources", snapshot.LiveSourceCount.ToString()));
-            });
-
-            if (snapshot.Sources.Count > 0)
-            {
-                col.Item().PaddingTop(2).Table(table =>
-                {
-                    table.ColumnsDefinition(columns =>
-                    {
-                        columns.RelativeColumn(1.2f);
-                        columns.RelativeColumn(2.4f);
-                        columns.RelativeColumn(0.9f);
-                        columns.RelativeColumn(0.9f);
-                        columns.RelativeColumn(0.9f);
-                        columns.RelativeColumn(1.2f);
-                    });
-
-                    HeaderCell(table, "Domain");
-                    HeaderCell(table, "Clock Identity");
-                    HeaderCell(table, "Ann");
-                    HeaderCell(table, "Sync");
-                    HeaderCell(table, "FU");
-                    HeaderCell(table, "Last");
-
-                    foreach (var source in snapshot.Sources.Take(10))
-                    {
-                        BodyCell(table, source.Domain.ToString());
-                        BodyCell(table, source.ClockIdentity);
-                        BodyCell(table, source.AnnounceCount.ToString());
-                        BodyCell(table, source.SyncCount.ToString());
-                        BodyCell(table, source.FollowUpCount.ToString());
-                        BodyCell(table, source.LastMessageType.ToString());
-                    }
-                });
-            }
-        });
-    }
-
-    private void ComposeEventTimeline(IContainer container)
-    {
-        container.Element(Card).Column(col =>
-        {
-            col.Spacing(8);
-            col.Item().Text("Event Timeline").FontSize(13).SemiBold().FontColor("#0F172A");
-
-            var events = _data.Events.Take(24).ToArray();
-            if (events.Length == 0)
-            {
-                col.Item().Text("No event timeline items captured.").FontColor("#64748B");
-                return;
-            }
-
-            col.Item().Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.ConstantColumn(72);
-                    columns.ConstantColumn(46);
-                    columns.ConstantColumn(62);
-                    columns.RelativeColumn();
-                });
-
-                HeaderCell(table, "Time");
-                HeaderCell(table, "Level");
-                HeaderCell(table, "Source");
-                HeaderCell(table, "Message");
-
-                foreach (var item in events)
-                {
-                    BodyCell(table, item.Timestamp.ToString("HH:mm:ss.fff"));
-                    BodyCell(table, item.Severity);
-                    BodyCell(table, item.Source);
-                    BodyCell(table, item.Message);
-                }
-            });
-        });
-    }
-
-    private void ComposeScopeNote(IContainer container)
-    {
-        container.Background("#FFF7ED").Border(1).BorderColor("#FED7AA").Padding(10).Column(col =>
-        {
-            col.Item().Text("Scope and Safety Note").FontSize(10).SemiBold().FontColor("#9A3412");
-            col.Item().PaddingTop(4).Text(_data.LabDisclaimer).FontSize(9).FontColor("#9A3412");
-        });
-    }
-
-    private static IContainer Card(IContainer container) => container.Background("#FFFFFF").Border(1).BorderColor("#E2E8F0").Padding(12);
-
-    private static void InfoTile(IContainer container, string label, string value)
-    {
-        container.Background("#F8FAFC").Border(1).BorderColor("#E2E8F0").Padding(9).Column(col =>
-        {
-            col.Item().Text(label.ToUpperInvariant()).FontSize(7.5f).SemiBold().FontColor("#64748B");
-            col.Item().PaddingTop(3).Text(value).FontSize(9.2f).FontColor("#0F172A");
-        });
-    }
-
-    private static void Metric(IContainer container, string label, string value)
-    {
-        container.Background("#F8FAFC").Border(1).BorderColor("#E2E8F0").Padding(9).Column(col =>
-        {
-            col.Item().Text(label.ToUpperInvariant()).FontSize(7.5f).SemiBold().FontColor("#64748B");
-            col.Item().PaddingTop(4).Text(value).FontSize(16).SemiBold().FontColor("#0F172A");
-        });
-    }
-
-    private static void HealthCard(IContainer container, PtpHealthCheckResult check)
-    {
-        container.Background(LevelBackground(check.Level)).Border(1).BorderColor(LevelBorder(check.Level)).Padding(9).Column(col =>
-        {
-            col.Item().Row(row =>
-            {
-                row.RelativeItem().Text(check.Name).FontSize(9.3f).SemiBold().FontColor("#0F172A");
-                row.ConstantItem(52).Element(c => StatusPill(c, check.Level, check.Level.ToString().ToUpperInvariant()));
-            });
-            col.Item().PaddingTop(4).Text(check.Summary).FontSize(8.8f).FontColor("#334155");
-        });
-    }
-
-    private static void StatusPill(IContainer container, PtpHealthLevel level, string text)
-    {
-        container.AlignRight().Background(LevelPill(level)).PaddingVertical(3).PaddingHorizontal(7).Text(text).FontSize(7.5f).SemiBold().FontColor(LevelText(level));
-    }
-
-    private static void HeaderCell(TableDescriptor table, string text)
-    {
-        table.Cell().Background("#EEF2F7").PaddingVertical(5).PaddingHorizontal(6).Text(text).FontSize(7.5f).SemiBold().FontColor("#475569");
-    }
-
-    private static void BodyCell(TableDescriptor table, string text)
-    {
-        table.Cell().BorderBottom(1).BorderColor("#EEF2F7").PaddingVertical(5).PaddingHorizontal(6).Text(Safe(text, "-")).FontSize(8.2f).FontColor("#1E293B");
-    }
-
-    private static string LevelBackground(PtpHealthLevel level) => level switch
-    {
-        PtpHealthLevel.Pass => "#ECFDF5",
-        PtpHealthLevel.Warn => "#FFFBEB",
-        PtpHealthLevel.Fail => "#FFF1F2",
-        _ => "#F8FAFC"
-    };
-
-    private static string LevelBorder(PtpHealthLevel level) => level switch
-    {
-        PtpHealthLevel.Pass => "#BBF7D0",
-        PtpHealthLevel.Warn => "#FDE68A",
-        PtpHealthLevel.Fail => "#FECDD3",
-        _ => "#E2E8F0"
-    };
-
-    private static string LevelPill(PtpHealthLevel level) => level switch
-    {
-        PtpHealthLevel.Pass => "#D1FAE5",
-        PtpHealthLevel.Warn => "#FEF3C7",
-        PtpHealthLevel.Fail => "#FFE4E6",
-        _ => "#E2E8F0"
-    };
-
-    private static string LevelText(PtpHealthLevel level) => level switch
-    {
-        PtpHealthLevel.Pass => "#047857",
-        PtpHealthLevel.Warn => "#B45309",
-        PtpHealthLevel.Fail => "#BE123C",
-        _ => "#475569"
-    };
-
-    private static string Safe(string? value, string fallback) => string.IsNullOrWhiteSpace(value) ? fallback : value;
+    private static void AppendAscii(List<byte> target, string text) => target.AddRange(Encoding.ASCII.GetBytes(text));
 }

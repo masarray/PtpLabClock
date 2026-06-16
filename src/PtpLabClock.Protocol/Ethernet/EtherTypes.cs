@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 namespace PtpLabClock.Protocol.Ethernet;
 
 public static class EtherTypes

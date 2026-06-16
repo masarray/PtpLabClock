@@ -26,7 +26,7 @@ Useful lessons:
 - Show detected GM, domains, message rates, interval health, master changes, warnings, and timeline.
 - For our tool: simulator + monitor + validator + report is a stronger product than broadcaster only.
 
-## Npcap / SharpPcap
+## Npcap / packet capture wrappers
 
 Useful lessons:
 
