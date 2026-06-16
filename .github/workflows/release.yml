@@ -11,9 +11,9 @@ permissions:
 
 jobs:
   package:
-    name: Package Windows artifacts
+    name: Build portable Windows release
     runs-on: windows-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
 
     steps:
       - name: Checkout
@@ -33,43 +33,61 @@ jobs:
       - name: Protocol smoke validation
         run: dotnet run --project .\src\PtpLabClock.Console --configuration Release -- --validate-protocol --domain 0 --export-pcap .\TestResults\ptp-validation.pcap
 
-      - name: Publish WPF app - framework dependent
-        run: dotnet publish .\src\PtpLabClock.App\PtpLabClock.App.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -p:PublishReadyToRun=false -o .\artifacts\PtpLabClock.App.win-x64.framework-dependent
-
-      - name: Publish WPF app - self contained
-        run: dotnet publish .\src\PtpLabClock.App\PtpLabClock.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:PublishReadyToRun=false -o .\artifacts\PtpLabClock.App.win-x64.self-contained
-
-      - name: Publish console - self contained
-        run: dotnet publish .\src\PtpLabClock.Console\PtpLabClock.Console.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:PublishReadyToRun=false -o .\artifacts\PtpLabClock.Console.win-x64.self-contained
-
-      - name: Add release notes to packages
+      - name: Publish portable single EXE files
         shell: pwsh
         run: |
-          $packageDirs = Get-ChildItem .\artifacts -Directory
-          foreach ($dir in $packageDirs) {
-            Copy-Item .\LICENSE $dir.FullName -Force
-            Copy-Item .\NOTICE $dir.FullName -Force
-            Copy-Item .\THIRD-PARTY-NOTICES.md $dir.FullName -Force
-            Copy-Item .\docs\release-readme.md (Join-Path $dir.FullName "README-FIRST.md") -Force
-          }
+          $ErrorActionPreference = "Stop"
+          $publishRoot = Resolve-Path "."
+          New-Item -ItemType Directory -Path .\artifacts -Force | Out-Null
+          New-Item -ItemType Directory -Path .\publish\app -Force | Out-Null
+          New-Item -ItemType Directory -Path .\publish\console -Force | Out-Null
 
-      - name: Create ZIP packages
-        shell: pwsh
-        run: |
-          $zips = @(
-            "PtpLabClock.App.win-x64.framework-dependent",
-            "PtpLabClock.App.win-x64.self-contained",
-            "PtpLabClock.Console.win-x64.self-contained"
+          $singleFileProps = @(
+            "-p:PublishSingleFile=true",
+            "-p:SelfContained=true",
+            "-p:IncludeNativeLibrariesForSelfExtract=true",
+            "-p:EnableCompressionInSingleFile=true",
+            "-p:PublishReadyToRun=false",
+            "-p:PublishTrimmed=false",
+            "-p:DebugType=None",
+            "-p:DebugSymbols=false"
           )
-          foreach ($name in $zips) {
-            Compress-Archive -Path ".\artifacts\$name\*" -DestinationPath ".\artifacts\$name.zip" -Force
-          }
 
-      - name: Generate checksums and release SBOM manifest
+          dotnet publish .\src\PtpLabClock.App\PtpLabClock.App.csproj -c Release -r win-x64 --self-contained true @singleFileProps -o .\publish\app
+          dotnet publish .\src\PtpLabClock.Console\PtpLabClock.Console.csproj -c Release -r win-x64 --self-contained true @singleFileProps -o .\publish\console
+
+          Copy-Item .\publish\app\PtpLabClock.App.exe .\artifacts\PtpLabClock.App.win-x64.portable.exe -Force
+          Copy-Item .\publish\console\PtpLabClock.Console.exe .\artifacts\PtpLabClock.Console.win-x64.portable.exe -Force
+
+          if (-not (Test-Path .\artifacts\PtpLabClock.App.win-x64.portable.exe)) { throw "App portable EXE was not created." }
+          if (-not (Test-Path .\artifacts\PtpLabClock.Console.win-x64.portable.exe)) { throw "Console portable EXE was not created." }
+
+      - name: Create optional ZIP packages with notices
         shell: pwsh
         run: |
-          $zipFiles = Get-ChildItem .\artifacts -Filter *.zip | Sort-Object Name
-          $checksums = foreach ($file in $zipFiles) {
+          $ErrorActionPreference = "Stop"
+          $packages = @(
+            @{ Name = "PtpLabClock.App.win-x64.portable"; Exe = ".\artifacts\PtpLabClock.App.win-x64.portable.exe" },
+            @{ Name = "PtpLabClock.Console.win-x64.portable"; Exe = ".\artifacts\PtpLabClock.Console.win-x64.portable.exe" }
+          )
+
+          foreach ($package in $packages) {
+            $dir = Join-Path ".\artifacts" $package.Name
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            Copy-Item $package.Exe (Join-Path $dir (Split-Path $package.Exe -Leaf)) -Force
+            Copy-Item .\LICENSE $dir -Force
+            Copy-Item .\NOTICE $dir -Force
+            Copy-Item .\THIRD-PARTY-NOTICES.md $dir -Force
+            Copy-Item .\docs\release-readme.md (Join-Path $dir "README-FIRST.md") -Force
+            Compress-Archive -Path (Join-Path $dir "*") -DestinationPath ".\artifacts\$($package.Name).zip" -Force
+          }
+
+      - name: Generate checksums and SPDX-style release manifest
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $releaseFiles = Get-ChildItem .\artifacts -File | Where-Object { $_.Extension -in ".exe", ".zip" } | Sort-Object Name
+          $checksums = foreach ($file in $releaseFiles) {
             $hash = Get-FileHash $file.FullName -Algorithm SHA256
             "$($hash.Hash.ToLowerInvariant())  $($file.Name)"
           }
@@ -79,7 +97,7 @@ jobs:
             spdxVersion = "SPDX-2.3"
             dataLicense = "CC0-1.0"
             SPDXID = "SPDXRef-DOCUMENT"
-            name = "Process Bus Timing Lab release manifest"
+            name = "Process Bus Timing Lab portable Windows release manifest"
             documentNamespace = "https://github.com/masarray/PtpLabClock/releases/$env:GITHUB_RUN_ID"
             creationInfo = [ordered]@{
               created = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
@@ -89,15 +107,16 @@ jobs:
               [ordered]@{ SPDXID = "SPDXRef-Package-PtpLabClock"; name = "PtpLabClock"; downloadLocation = "NOASSERTION"; filesAnalyzed = $false; licenseConcluded = "Apache-2.0"; licenseDeclared = "Apache-2.0"; copyrightText = "Copyright (C) 2026 Ari Sulistiono" },
               [ordered]@{ SPDXID = "SPDXRef-Package-SharpPcap"; name = "SharpPcap"; versionInfo = "6.3.1"; downloadLocation = "https://www.nuget.org/packages/SharpPcap/6.3.1"; filesAnalyzed = $false; licenseConcluded = "MIT"; licenseDeclared = "MIT"; copyrightText = "NOASSERTION" }
             )
-            releaseArtifacts = @($zipFiles | ForEach-Object { [ordered]@{ name = $_.Name; sha256 = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(); size = $_.Length } })
+            releaseArtifacts = @($releaseFiles | ForEach-Object { [ordered]@{ name = $_.Name; sha256 = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(); size = $_.Length } })
           }
           $sbom | ConvertTo-Json -Depth 8 | Set-Content .\artifacts\PtpLabClock.release-sbom.spdx.json -Encoding UTF8
 
-      - name: Upload artifacts
+      - name: Upload release build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-packages
+          name: portable-release-packages
           path: |
+            .\artifacts\*.exe
             .\artifacts\*.zip
             .\artifacts\checksums.txt
             .\artifacts\PtpLabClock.release-sbom.spdx.json
@@ -108,8 +127,20 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
+            .\artifacts\*.exe
             .\artifacts\*.zip
             .\artifacts\checksums.txt
             .\artifacts\PtpLabClock.release-sbom.spdx.json
             .\TestResults\ptp-validation.pcap
           generate_release_notes: true
+          body: |
+            ## Process Bus Timing Lab portable release
+
+            Download the direct portable EXE when you want the fastest Windows start:
+
+            - `PtpLabClock.App.win-x64.portable.exe` - WPF dashboard, self-contained single-file app.
+            - `PtpLabClock.Console.win-x64.portable.exe` - CLI validation, RAW self-test, passive monitor, and scripts.
+
+            ZIP packages are also provided for users who want license notices and README files bundled beside the EXE.
+
+            RAW NIC mode requires Npcap and may require Administrator privileges. This software is a lab simulator and diagnostic companion, not a certified grandmaster or relay-acceptance timing reference.
