@@ -32,6 +32,11 @@ jobs:
           test -f docs/app.js
           test -f docs/site.webmanifest
           test -f docs/og-preview.svg
+          test -f docs/robots.txt
+          test -f docs/sitemap.xml
+          grep -q "Process Bus Timing Lab" docs/index.html
+          grep -q "SoftwareApplication" docs/index.html
+          grep -q "Sitemap:" docs/robots.txt
           echo "Pages source preview:"
           find docs -maxdepth 2 -type f | sort | sed 's#^docs/##' | head -120
 
