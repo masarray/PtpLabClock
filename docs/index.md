@@ -2,6 +2,8 @@
 
 Product-facing documentation is organized by workflow:
 
+- [Public landing page](index.html)
+- [Product readiness audit](product-readiness.md)
 - [Quick start](quick-start.md)
 - [Installation](installation.md)
 - [RAW NIC mode](raw-nic-mode.md)
