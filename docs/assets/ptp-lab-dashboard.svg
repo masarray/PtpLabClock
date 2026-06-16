@@ -1,0 +1,50 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="860" viewBox="0 0 1600 860" role="img" aria-label="Process Bus Timing Lab dashboard illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8fbff"/><stop offset="1" stop-color="#eef6ff"/></linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1668e8"/><stop offset="1" stop-color="#23a8e8"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="22" stdDeviation="22" flood-color="#102033" flood-opacity=".14"/></filter>
+  </defs>
+  <rect width="1600" height="860" fill="url(#bg)"/>
+  <rect x="18" y="20" width="1564" height="820" rx="30" fill="#ffffff" stroke="#dce8f6" filter="url(#shadow)"/>
+  <text x="44" y="70" font-family="Inter,Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#102033">PTP Lab Clock Simulator</text>
+  <rect x="205" y="44" width="150" height="28" rx="14" fill="#e7f0ff"/>
+  <text x="222" y="63" font-family="Inter,Segoe UI,sans-serif" font-size="13" fill="#1668e8">Apache-2.0 · LAB</text>
+  <text x="44" y="104" font-family="Inter,Segoe UI,sans-serif" font-size="15" fill="#64748b">Synthetic IEC 61850-9-3 timing simulator for quick visibility, analyzer validation, and fault scenario testing.</text>
+  <rect x="1350" y="40" width="100" height="56" rx="26" fill="#f8fbff" stroke="#dce8f6"/>
+  <text x="1368" y="62" font-family="Inter,Segoe UI,sans-serif" font-size="11" fill="#64748b">ENGINE</text><text x="1368" y="82" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="700" fill="#0f9b63">RUNNING</text>
+  <rect x="1460" y="40" width="100" height="56" rx="26" fill="#f8fbff" stroke="#dce8f6"/>
+  <text x="1478" y="62" font-family="Inter,Segoe UI,sans-serif" font-size="11" fill="#64748b">ADAPTER</text><text x="1478" y="82" font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="700" fill="#1668e8">DEMO</text>
+  <rect x="34" y="128" width="1532" height="76" rx="22" fill="#ffffff" stroke="#e3edf8"/>
+  <rect x="52" y="158" width="500" height="38" rx="16" fill="#fbfdff" stroke="#dce8f6"/><text x="68" y="182" font-family="Inter,Segoe UI,sans-serif" font-size="14" fill="#102033">Demo Mode - UI/engine simulator, no Npcap required</text>
+  <rect x="570" y="158" width="420" height="38" rx="19" fill="#f1f5f9"/><rect x="574" y="162" width="140" height="30" rx="15" fill="#dceaff" stroke="#bdd6ff"/><text x="623" y="182" font-family="Inter,Segoe UI,sans-serif" font-size="13" fill="#102033">IEC 61850</text><text x="760" y="182" font-family="Inter,Segoe UI,sans-serif" font-size="13" fill="#102033">Analyzer</text><text x="910" y="182" font-family="Inter,Segoe UI,sans-serif" font-size="13" fill="#102033">Generic</text>
+  <g transform="translate(34 220)">
+    <rect width="438" height="470" rx="22" fill="#ffffff" stroke="#e3edf8"/><text x="24" y="34" font-family="Inter,Segoe UI,sans-serif" font-size="19" font-weight="700" fill="#102033">Clock Profile</text><text x="24" y="58" font-family="Inter,Segoe UI,sans-serif" font-size="13" fill="#64748b">Lab identity and PTP quality fields.</text>
+    <g font-family="Inter,Segoe UI,sans-serif" font-size="12" fill="#64748b"><text x="24" y="90">DOMAIN NUMBER</text><text x="24" y="155">CLOCK CLASS</text><text x="24" y="220">SOURCE MAC</text><text x="24" y="285">CLOCK IDENTITY</text></g>
+    <g fill="#fbfdff" stroke="#dce8f6"><rect x="24" y="102" width="390" height="36"/><rect x="24" y="167" width="390" height="36"/><rect x="24" y="232" width="390" height="36"/><rect x="24" y="297" width="390" height="36"/></g>
+    <g font-family="Inter,Segoe UI,sans-serif" font-size="14" fill="#102033"><text x="36" y="126">0</text><text x="36" y="191">248</text><text x="36" y="256">02-00-00-00-00-01</text><text x="36" y="321">02-00-00-FF-FE-00-00-01</text></g>
+    <rect x="24" y="405" width="390" height="42" rx="14" fill="#fff4df" stroke="#f5c16d"/><text x="38" y="430" font-family="Inter,Segoe UI,sans-serif" font-size="13" fill="#b45309">LAB ONLY · not a timing-accuracy source</text>
+  </g>
+  <g transform="translate(490 220)">
+    <rect width="650" height="470" rx="22" fill="#ffffff" stroke="#e3edf8"/><text x="24" y="34" font-family="Inter,Segoe UI,sans-serif" font-size="19" font-weight="700" fill="#102033">Live Timing Flow</text><text x="24" y="58" font-family="Inter,Segoe UI,sans-serif" font-size="13" fill="#64748b">Layer-2 PTP counters, Wireshark hinting, and runtime visibility.</text>
+    <g font-family="Inter,Segoe UI,sans-serif">
+      <rect x="24" y="76" width="200" height="122" rx="18" fill="#e8f8f1"/><text x="42" y="102" font-size="12" fill="#0f9b63">ANNOUNCE TX</text><text x="42" y="144" font-size="31" font-weight="700" fill="#102033">26</text>
+      <rect x="236" y="76" width="200" height="122" rx="18" fill="#eaf1ff"/><text x="254" y="102" font-size="12" fill="#1668e8">SYNC TX</text><text x="254" y="144" font-size="31" font-weight="700" fill="#102033">26</text>
+      <rect x="448" y="76" width="178" height="122" rx="18" fill="#e6f7fb"/><text x="466" y="102" font-size="12" fill="#07809a">FOLLOW_UP TX</text><text x="466" y="144" font-size="31" font-weight="700" fill="#102033">26</text>
+      <rect x="24" y="210" width="200" height="122" rx="18" fill="#ffffff" stroke="#e3edf8"/><text x="42" y="236" font-size="12" fill="#64748b">PDELAY_REQ RX</text><text x="42" y="278" font-size="31" font-weight="700" fill="#102033">10</text>
+      <rect x="236" y="210" width="200" height="122" rx="18" fill="#ffffff" stroke="#e3edf8"/><text x="254" y="236" font-size="12" fill="#64748b">PDELAY_RESP TX</text><text x="254" y="278" font-size="31" font-weight="700" fill="#102033">10</text>
+      <rect x="448" y="210" width="178" height="122" rx="18" fill="#ffffff" stroke="#e3edf8"/><text x="466" y="236" font-size="12" fill="#64748b">PDELAY_FU TX</text><text x="466" y="278" font-size="31" font-weight="700" fill="#102033">10</text>
+      <rect x="24" y="344" width="200" height="102" rx="18" fill="#fff0f1"/><text x="42" y="370" font-size="12" fill="#d43f52">ERRORS</text><text x="42" y="414" font-size="31" font-weight="700" fill="#102033">0</text>
+      <rect x="236" y="344" width="200" height="102" rx="18" fill="#f2f7fd"/><text x="254" y="370" font-size="12" fill="#64748b">WIRESHARK</text><text x="254" y="396" font-size="14" fill="#102033">eth.type ==</text><text x="254" y="420" font-size="18" font-weight="700" fill="#102033">0x88f7 / ptp</text>
+      <rect x="448" y="344" width="178" height="102" rx="18" fill="#f2f7fd"/><text x="466" y="370" font-size="12" fill="#64748b">STATUS NOTE</text><text x="466" y="398" font-size="12" fill="#64748b">RAW candidates detected.</text><text x="466" y="418" font-size="12" fill="#64748b">Prefer wired Ethernet.</text>
+    </g>
+  </g>
+  <g transform="translate(1154 220)">
+    <rect width="412" height="470" rx="22" fill="#ffffff" stroke="#e3edf8"/><text x="24" y="34" font-family="Inter,Segoe UI,sans-serif" font-size="19" font-weight="700" fill="#102033">Scenario Player</text><text x="24" y="58" font-family="Inter,Segoe UI,sans-serif" font-size="13" fill="#64748b">Trigger controlled lab conditions to validate analyzer diagnostics.</text>
+    <g font-family="Inter,Segoe UI,sans-serif" font-size="14" font-weight="700" text-anchor="middle" fill="#102033"><rect x="24" y="78" width="364" height="36" rx="14" fill="#fff4e5" stroke="#f5c16d"/><text x="206" y="101">GM Lost</text><rect x="24" y="122" width="364" height="36" rx="14" fill="#fff4e5" stroke="#f5c16d"/><text x="206" y="145">Missing FollowUp</text><rect x="24" y="166" width="364" height="36" rx="14" fill="#fff4e5" stroke="#f5c16d"/><text x="206" y="189">Clock Degraded</text><rect x="24" y="210" width="364" height="36" rx="14" fill="#f0e8ff" stroke="#d2b5ff"/><text x="206" y="233">Sequence Jump</text><rect x="24" y="254" width="364" height="36" rx="14" fill="#f0e8ff" stroke="#d2b5ff"/><text x="206" y="277">GM Switch</text><rect x="24" y="298" width="364" height="36" rx="14" fill="#ffecef" stroke="#ffc5cc"/><text x="206" y="321">Stop Pdelay</text></g>
+  </g>
+  <g transform="translate(34 706)">
+    <rect width="1532" height="118" rx="22" fill="#ffffff" stroke="#e3edf8"/><text x="24" y="34" font-family="Inter,Segoe UI,sans-serif" font-size="19" font-weight="700" fill="#102033">Timing Health</text><rect x="124" y="14" width="48" height="22" rx="11" fill="#eaf1ff"/><text x="137" y="30" font-family="Inter,Segoe UI,sans-serif" font-size="11" fill="#1668e8">WARN</text>
+    <g font-family="Inter,Segoe UI,sans-serif" font-size="12"><rect x="24" y="50" width="210" height="52" rx="14" fill="#ecfbf3" stroke="#b9efd2"/><text x="40" y="72" fill="#0f9b63">PTP Visibility · PASS</text><text x="40" y="92" fill="#102033">Valid PTP traffic detected</text><rect x="250" y="50" width="210" height="52" rx="14" fill="#ecfbf3" stroke="#b9efd2"/><text x="266" y="72" fill="#0f9b63">Domain Match · PASS</text><text x="266" y="92" fill="#102033">Domain 0 only</text><rect x="476" y="50" width="210" height="52" rx="14" fill="#fff9e6" stroke="#f0d66d"/><text x="492" y="72" fill="#b7791f">GM Stability · WARN</text><text x="492" y="92" fill="#102033">No live Announce source</text><rect x="702" y="50" width="210" height="52" rx="14" fill="#fff9e6" stroke="#f0d66d"/><text x="718" y="72" fill="#b7791f">Follow_Up Pairing · WARN</text><text x="718" y="92" fill="#102033">Pairing not validated yet</text><rect x="928" y="50" width="210" height="52" rx="14" fill="#fff9e6" stroke="#f0d66d"/><text x="944" y="72" fill="#b7791f">Pdelay Activity · WARN</text><text x="944" y="92" fill="#102033">Request without response</text><rect x="1154" y="50" width="210" height="52" rx="14" fill="#ecfbf3" stroke="#b9efd2"/><text x="1170" y="72" fill="#0f9b63">Sequence · PASS</text><text x="1170" y="92" fill="#102033">No anomaly detected</text></g>
+  </g>
+</svg>
