@@ -18,9 +18,7 @@ Process Bus Timing Lab helps substation automation engineers see whether PTPv2 L
 
 ## Product screenshot
 
-> Add the supplied dashboard screenshot as `docs/assets/ptp-lab-dashboard.png` to show the real WPF workspace on GitHub and GitHub Pages.
-
-![Process Bus Timing Lab WPF dashboard showing PTP timing flow, scenario player, VLAN settings, and timing health cards for IEC 61850 Process Bus testing](docs/assets/ptp-lab-dashboard.png)
+![Process Bus Timing Lab WPF dashboard showing PTP timing flow, scenario player, VLAN settings, and timing health cards for IEC 61850 Process Bus testing](docs/assets/ptp-lab-dashboard.svg)
 
 *The dashboard combines Clock Profile setup, Live Timing Flow counters, Scenario Player actions, VLAN settings, RAW self-test, and Timing Health diagnostics in one compact engineering workspace.*
 
