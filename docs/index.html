@@ -4,9 +4,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Process Bus Timing Lab - PTP Lab Clock Simulator for IEC 61850 FAT/SAT</title>
-  <meta name="description" content="Process Bus Timing Lab is a free Apache-2.0 Windows PTPv2 Layer-2 lab clock simulator and passive timing-health monitor for IEC 61850 Process Bus FAT, SAT, analyzer validation, VLAN/QinQ visibility, and controlled timing scenarios." />
-  <meta name="keywords" content="PTP lab clock, IEC 61850-9-3, Process Bus, PTPv2 Layer 2, VLAN PTP, QinQ PTP, Sampled Values timing, GOOSE timing, FAT SAT commissioning, substation automation, Npcap, SharpPcap" />
+  <title>Process Bus Timing Lab - Windows PTP Simulator and Timing Monitor for IEC 61850</title>
+  <meta name="description" content="Process Bus Timing Lab is a Windows PTP lab simulator and timing-health monitor for IEC 61850 FAT, SAT, analyzer validation, VLAN/QinQ visibility, RAW NIC self-test, and Process Bus troubleshooting." />
+  <meta name="keywords" content="IEC 61850, Process Bus, PTP simulator, PTP lab clock, PTPv2, IEEE 1588, IEC 61850-9-3, timing monitor, Sampled Values, GOOSE, VLAN, QinQ, Npcap, SharpPcap, FAT, SAT, substation automation" />
   <meta name="application-name" content="Process Bus Timing Lab" />
   <meta name="author" content="Mas Ari / Tutorial Mas Ari" />
   <meta name="robots" content="index,follow,max-image-preview:large" />
@@ -17,17 +17,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300,0,0&display=swap" rel="stylesheet" />
   <link rel="manifest" href="site.webmanifest" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="product-marketing.css" />
   <script src="app.js" defer></script>
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Process Bus Timing Lab" />
-  <meta property="og:title" content="Process Bus Timing Lab - PTP Lab Clock Simulator" />
-  <meta property="og:description" content="A Windows-friendly PTPv2 Layer-2 lab simulator and timing-health monitor for IEC 61850 Process Bus engineering workflows." />
+  <meta property="og:title" content="Process Bus Timing Lab - PTP Simulator and Timing Monitor" />
+  <meta property="og:description" content="Windows PTP lab simulator and timing-health monitor for IEC 61850 FAT, SAT, analyzer validation, and Process Bus troubleshooting." />
   <meta property="og:url" content="https://masarray.github.io/PtpLabClock/" />
-  <meta property="og:image" content="https://masarray.github.io/PtpLabClock/og-preview.svg" />
+  <meta property="og:image" content="https://masarray.github.io/PtpLabClock/assets/ptp-lab-dashboard.svg" />
+  <meta property="og:image:alt" content="Process Bus Timing Lab dashboard for IEC 61850 Process Bus timing visibility" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Process Bus Timing Lab" />
-  <meta name="twitter:description" content="PTPv2 lab simulator and passive timing-health monitor for IEC 61850 Process Bus workflows." />
+  <meta name="twitter:description" content="Windows PTP lab simulator and timing-health monitor for IEC 61850 Process Bus workflows." />
+  <meta name="twitter:image" content="https://masarray.github.io/PtpLabClock/assets/ptp-lab-dashboard.svg" />
 
   <script type="application/ld+json">
   {
@@ -42,14 +45,16 @@
     "url": "https://masarray.github.io/PtpLabClock/",
     "downloadUrl": "https://github.com/masarray/PtpLabClock/releases",
     "codeRepository": "https://github.com/masarray/PtpLabClock",
+    "image": "https://masarray.github.io/PtpLabClock/assets/ptp-lab-dashboard.svg",
     "featureList": [
-      "PTPv2 Layer-2 lab traffic generation",
+      "PTPv2 Layer-2 lab traffic simulation",
+      "Passive timing-health monitor",
       "RAW NIC self-test with Npcap",
-      "VLAN and QinQ PTP frame validation",
-      "Passive PTP monitor grouped by domain and source",
-      "Timing-health evidence export"
+      "VLAN and QinQ PTP validation",
+      "Scenario player for analyzer diagnostics",
+      "PDF and ZIP timing evidence export"
     ],
-    "description": "Free Apache-2.0 Windows tool for controlled PTPv2 visibility checks, analyzer validation, passive timing-health symptoms, and evidence export in IEC 61850 Process Bus lab networks."
+    "description": "Windows PTP lab simulator and timing-health monitor for IEC 61850 FAT, SAT, analyzer validation, VLAN/QinQ visibility, RAW NIC self-test, and Process Bus troubleshooting."
   }
   </script>
 </head>
@@ -63,7 +68,7 @@
     <div class="header-shell">
       <a class="brand" href="#top" aria-label="Process Bus Timing Lab home">
         <span class="brand-mark" aria-hidden="true">PTP</span>
-        <span class="brand-copy"><strong>Process Bus Timing Lab</strong><small>PTP visibility workspace</small></span>
+        <span class="brand-copy"><strong>Process Bus Timing Lab</strong><small>Timing visibility workspace</small></span>
       </a>
       <nav class="nav-links" aria-label="Main navigation">
         <a href="#download">Download</a>
@@ -79,50 +84,24 @@
   <main id="top">
     <section class="hero" aria-label="Product introduction">
       <div class="hero-copy reveal">
-        <p class="eyebrow"><span class="material-symbols-rounded">bolt</span> IEC 61850 Process Bus · PTPv2 Layer-2 · Apache-2.0</p>
-        <h1>Make PTP visibility clear before SV and GOOSE testing becomes guesswork.</h1>
-        <p class="lead">A Windows-friendly lab simulator and passive timing monitor for engineers validating PTP presence, VLAN/QinQ handling, analyzer decoding, Pdelay behavior, and timing-health evidence during FAT, SAT, commissioning preparation, and lab troubleshooting.</p>
+        <p class="eyebrow"><span class="material-symbols-rounded">verified</span> IEC 61850 Process Bus · PTPv2 Layer-2 · Apache-2.0</p>
+        <h1>PTP visibility for engineers who need answers before Process Bus testing goes blind.</h1>
+        <p class="lead">Process Bus Timing Lab is a Windows PTP lab simulator and timing-health monitor for IEC 61850 FAT, SAT, analyzer validation, and Process Bus troubleshooting. Use it to validate PTP visibility, VLAN/QinQ paths, analyzer decoding, and controlled timing symptoms before deeper SV and GOOSE testing.</p>
         <div class="hero-actions">
-          <a class="button primary" href="https://github.com/masarray/PtpLabClock/releases"><span class="material-symbols-rounded">download</span> Download release</a>
-          <a class="button secondary" href="https://github.com/masarray/PtpLabClock"><span class="material-symbols-rounded">code</span> View GitHub</a>
+          <a class="button primary" href="https://github.com/masarray/PtpLabClock/releases"><span class="material-symbols-rounded">download</span> Download portable EXE</a>
+          <a class="button secondary" href="https://github.com/masarray/PtpLabClock"><span class="material-symbols-rounded">code</span> View on GitHub</a>
         </div>
         <div class="signal-strip" aria-label="Quick capabilities">
-          <span>Announce</span><span>Sync / Follow_Up</span><span>Pdelay</span><span>VLAN / QinQ</span>
+          <span>PTPv2 Layer-2</span><span>VLAN / QinQ</span><span>RAW NIC self-test</span><span>Timing health</span>
         </div>
-        <p class="safety-note"><strong>Safety boundary:</strong> this is a lab simulator and diagnostic companion. It is not a GPS grandmaster, certified timing source, hardware-timestamped clock, or relay-acceptance timing reference.</p>
+        <p class="safety-note"><strong>Safety boundary:</strong> built for lab visibility and analyzer validation. It is not a certified grandmaster, GPS clock, hardware-timestamped timing source, or relay-acceptance reference.</p>
       </div>
 
-      <div class="hero-visual reveal delay-1" aria-label="Application preview">
-        <div class="product-window">
-          <div class="window-top">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            <strong>Timing Lab Console</strong>
-            <em><span></span> RAW monitor ready</em>
-          </div>
-          <div class="screen-grid">
-            <section class="screen-card large">
-              <div class="card-head"><span>Domain 0</span><strong>PTP timing health</strong></div>
-              <div class="health-ring" aria-hidden="true"><span>87</span><small>lab score</small></div>
-              <div class="health-bars" aria-hidden="true"><i style="--v:82%"></i><i style="--v:62%"></i><i style="--v:94%"></i><i style="--v:70%"></i><i style="--v:88%"></i></div>
-            </section>
-            <section class="screen-card">
-              <div class="card-head"><span>Source</span><strong>Clock identity</strong></div>
-              <p class="mono">02-00-00-ff-fe-00-00-01</p>
-              <div class="mini-status pass">Announce seen</div>
-            </section>
-            <section class="screen-card">
-              <div class="card-head"><span>VLAN</span><strong>Process bus tag</strong></div>
-              <p class="mono">VID 100 · PCP 4</p>
-              <div class="mini-status warn">QinQ aware</div>
-            </section>
-            <section class="event-feed">
-              <div><span>00:01.214</span><strong>Sync</strong><em>sequence 1024</em></div>
-              <div><span>00:01.215</span><strong>Follow_Up</strong><em>paired</em></div>
-              <div><span>00:01.992</span><strong>Pdelay_Req</strong><em>response sent</em></div>
-              <div><span>00:02.000</span><strong>Announce</strong><em>quality stable</em></div>
-            </section>
-          </div>
-        </div>
+      <div class="hero-visual reveal delay-1" aria-label="Application screenshot preview">
+        <figure class="screenshot-frame">
+          <div class="frame-top"><span></span><span></span><span></span><strong>Process Bus Timing Lab</strong><em>Windows dashboard</em></div>
+          <img src="assets/ptp-lab-dashboard.svg" alt="Process Bus Timing Lab WPF dashboard showing PTP timing flow, scenario player, VLAN settings, and timing health cards" />
+        </figure>
       </div>
     </section>
 
@@ -130,36 +109,48 @@
       <article><span>01</span><strong>See timing traffic</strong><p>Confirm Layer-2 PTP visibility on the selected NIC before analyzer work starts.</p></article>
       <article><span>02</span><strong>Validate decoding</strong><p>Generate controlled Announce, Sync, Follow_Up, and Pdelay patterns.</p></article>
       <article><span>03</span><strong>Check VLAN path</strong><p>Exercise untagged, VLAN, and QinQ PTP frame handling.</p></article>
-      <article><span>04</span><strong>Export evidence</strong><p>Keep short reports and session packages for engineering discussion.</p></article>
+      <article><span>04</span><strong>Export evidence</strong><p>Keep short timing-health reports for FAT/SAT notes and engineering discussion.</p></article>
     </section>
 
     <section class="download-panel reveal" id="download">
       <div>
         <p class="eyebrow"><span class="material-symbols-rounded">rocket_launch</span> Download and run</p>
-        <h2>Portable Windows packages for lab engineers.</h2>
-        <p>Use the WPF dashboard for guided sessions or the CLI for repeatable RAW self-test, protocol smoke validation, passive monitor, and evidence export.</p>
+        <h2>Portable Windows EXE packages for lab engineers.</h2>
+        <p>Use the WPF dashboard for guided sessions or the CLI for repeatable protocol smoke validation, adapter listing, RAW self-test, passive monitor, and evidence export.</p>
       </div>
       <div class="download-cards">
-        <a href="https://github.com/masarray/PtpLabClock/releases" class="download-card"><span class="material-symbols-rounded">desktop_windows</span><strong>Windows desktop app</strong><small>Self-contained release package for easiest use.</small></a>
-        <a href="https://github.com/masarray/PtpLabClock/releases" class="download-card"><span class="material-symbols-rounded">terminal</span><strong>Console tool</strong><small>Protocol validation, adapter list, RAW self-test, and scripts.</small></a>
-        <a href="https://github.com/masarray/PtpLabClock/blob/master/docs/quick-start.md" class="download-card"><span class="material-symbols-rounded">menu_book</span><strong>Quick start</strong><small>Install Npcap, select NIC, run validation, and inspect Wireshark.</small></a>
+        <a href="https://github.com/masarray/PtpLabClock/releases" class="download-card"><span class="material-symbols-rounded">desktop_windows</span><strong>Desktop portable EXE</strong><small>Run the WPF timing dashboard without opening Visual Studio.</small></a>
+        <a href="https://github.com/masarray/PtpLabClock/releases" class="download-card"><span class="material-symbols-rounded">terminal</span><strong>Console portable EXE</strong><small>Use CLI validation, RAW self-test, and scriptable lab checks.</small></a>
+        <a href="https://github.com/masarray/PtpLabClock/blob/master/docs/quick-start.md" class="download-card"><span class="material-symbols-rounded">menu_book</span><strong>Quick start</strong><small>Install Npcap, select a NIC, run self-test, and inspect Wireshark.</small></a>
       </div>
     </section>
 
     <section class="section" id="features">
       <div class="section-heading reveal">
-        <p class="eyebrow"><span class="material-symbols-rounded">hub</span> Built for practical timing checks</p>
-        <h2>Focused PTP tools without hiding the field limitations.</h2>
-        <p>The goal is fast visibility, repeatable lab stimuli, passive health symptoms, and honest wording. Windows software timestamps are useful for diagnostics, not for certified time distribution.</p>
+        <p class="eyebrow"><span class="material-symbols-rounded">hub</span> Built for practical Process Bus timing checks</p>
+        <h2>Turn hidden timing assumptions into visible engineering evidence.</h2>
+        <p>The product focuses on early visibility, repeatable lab stimuli, passive timing-health symptoms, and honest field boundaries. Windows software capture is useful for diagnostics, not certified time distribution.</p>
       </div>
       <div class="feature-grid">
-        <article class="feature-card reveal"><b>PTP serializer</b><h3>Protocol-grade frames</h3><p>Announce, Sync, Follow_Up, Pdelay_Req, Pdelay_Resp, and Pdelay_Resp_Follow_Up for controlled analyzer validation.</p></article>
-        <article class="feature-card reveal delay-1"><b>Ethernet</b><h3>VLAN and QinQ aware</h3><p>Frame builders and inspectors cover untagged, IEEE 802.1Q VLAN, and stacked-tag lab scenarios.</p></article>
-        <article class="feature-card reveal delay-2"><b>Monitor</b><h3>Passive timing view</h3><p>Group observed PTP by domain, source clock identity, sequence behavior, and message pairing symptoms.</p></article>
-        <article class="feature-card reveal"><b>Health</b><h3>Explainable checks</h3><p>Surface missing Follow_Up, GM-loss scenario, sequence jump, degraded quality, and stale timing symptoms.</p></article>
-        <article class="feature-card reveal delay-1"><b>RAW NIC</b><h3>Npcap boundary</h3><p>Adapter list, MAC-aware source identity, VLAN-aware filter, and a RAW self-test before lab publication.</p></article>
-        <article class="feature-card reveal delay-2"><b>Evidence</b><h3>Report package</h3><p>Export concise PDF and ZIP evidence for issue discussion, FAT notes, or analyzer validation records.</p></article>
+        <article class="feature-card reveal"><b>PTP simulator</b><h3>Controlled Layer-2 frames</h3><p>Generate Announce, Sync, Follow_Up, Pdelay_Req, Pdelay_Resp, and Pdelay_Resp_Follow_Up patterns for analyzer validation.</p></article>
+        <article class="feature-card reveal delay-1"><b>Ethernet</b><h3>VLAN and QinQ aware</h3><p>Build and inspect untagged, IEEE 802.1Q VLAN, and stacked-tag PTP paths used in Process Bus lab networks.</p></article>
+        <article class="feature-card reveal delay-2"><b>Monitor</b><h3>Passive timing-health view</h3><p>Group observed PTP by domain, source clock identity, sequence behavior, and message-pairing symptoms.</p></article>
+        <article class="feature-card reveal"><b>Scenario player</b><h3>Fault symptoms on demand</h3><p>Trigger GM lost, missing Follow_Up, degraded clock, sequence jump, GM switch, and stopped Pdelay lab conditions.</p></article>
+        <article class="feature-card reveal delay-1"><b>RAW NIC</b><h3>Npcap boundary</h3><p>Adapter list, MAC-aware source identity, VLAN-aware capture filter, and RAW self-test before lab publication.</p></article>
+        <article class="feature-card reveal delay-2"><b>Evidence</b><h3>Reports for discussion</h3><p>Export concise PDF and ZIP evidence for issue discussion, FAT notes, SAT preparation, or analyzer validation records.</p></article>
       </div>
+    </section>
+
+    <section class="section screenshot-section">
+      <div class="section-heading reveal">
+        <p class="eyebrow"><span class="material-symbols-rounded">dashboard</span> Real product workflow</p>
+        <h2>Clock profile, live flow, scenarios, VLAN, and health in one workspace.</h2>
+        <p>The desktop workspace is designed for engineers who need to see what the timing layer is doing without jumping between packet dumps, handwritten notes, and generic counters.</p>
+      </div>
+      <figure class="wide-shot reveal delay-1">
+        <img src="assets/ptp-lab-dashboard.svg" alt="Process Bus Timing Lab dashboard with clock profile, live timing flow, scenario player, and timing health diagnostics" />
+        <figcaption>Dashboard preview for IEC 61850 Process Bus timing visibility, analyzer validation, and lab scenario testing.</figcaption>
+      </figure>
     </section>
 
     <section class="section workflow-section" id="workflow">
@@ -169,7 +160,7 @@
       </div>
       <div class="timeline reveal delay-1">
         <div><span>1</span><h3>Select NIC</h3><p>Use a wired test adapter, mirror port, TAP, or isolated engineering switch.</p></div>
-        <div><span>2</span><h3>Self-test RAW</h3><p>Open adapter, apply PTP filter, send one Announce, and check local capture/Wireshark.</p></div>
+        <div><span>2</span><h3>Self-test RAW</h3><p>Open adapter, apply PTP filter, send one Announce, and check local capture or Wireshark.</p></div>
         <div><span>3</span><h3>Choose profile</h3><p>Use IEC 61850-9-3 lab, analyzer test, or generic PTPv2 defaults.</p></div>
         <div><span>4</span><h3>Exercise scenarios</h3><p>Generate controlled GM lost, missing Follow_Up, degraded clock, or sequence jump symptoms.</p></div>
         <div><span>5</span><h3>Export evidence</h3><p>Save session report and attach it to engineering notes or analyzer issue reports.</p></div>
@@ -216,7 +207,7 @@ dotnet run --project .\src\PtpLabClock.Console -- \
   </main>
 
   <footer class="site-footer">
-    <div><strong>Process Bus Timing Lab</strong><span>PTP lab clock simulator and timing-health monitor for IEC 61850 engineering workflows.</span></div>
+    <div><strong>Process Bus Timing Lab</strong><span>Windows PTP lab simulator and timing-health monitor for IEC 61850 FAT, SAT, analyzer validation, and Process Bus troubleshooting.</span></div>
     <div class="footer-links"><a href="https://github.com/masarray/PtpLabClock">GitHub</a><a href="https://github.com/masarray/PtpLabClock/releases">Releases</a><a href="https://github.com/masarray/PtpLabClock/blob/master/LICENSE">Apache-2.0</a></div>
   </footer>
 </body>

@@ -1,0 +1,69 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+.screenshot-frame,
+.wide-shot {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.82);
+  background: rgba(255,255,255,.78);
+  box-shadow: var(--shadow-deep);
+  margin: 0;
+}
+.screenshot-frame {
+  width: min(820px, 100%);
+  padding: 12px;
+  border-radius: var(--radius-xl);
+}
+.screenshot-frame img,
+.wide-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.screenshot-frame .frame-top {
+  height: 34px;
+  display: grid;
+  grid-template-columns: auto auto auto 1fr auto;
+  gap: 7px;
+  align-items: center;
+  padding: 0 6px 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.screenshot-frame .frame-top span {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #d5e0eb;
+}
+.screenshot-frame .frame-top strong {
+  justify-self: center;
+  color: var(--ink);
+  font-weight: 500;
+}
+.screenshot-frame .frame-top em {
+  font-style: normal;
+  color: var(--faint);
+}
+.screenshot-section {
+  margin-top: -18px;
+}
+.wide-shot {
+  padding: 14px;
+  border-radius: var(--radius-xl);
+}
+.wide-shot figcaption {
+  margin: 14px 6px 2px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+@media (max-width: 720px) {
+  .screenshot-frame,
+  .wide-shot { padding: 9px; border-radius: 24px; }
+  .screenshot-frame img,
+  .wide-shot img { border-radius: 18px; }
+  .screenshot-frame .frame-top em { display: none; }
+}
