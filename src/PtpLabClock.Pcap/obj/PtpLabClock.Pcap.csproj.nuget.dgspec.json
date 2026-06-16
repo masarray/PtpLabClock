@@ -1,0 +1,223 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Pcap\\PtpLabClock.Pcap.csproj": {}
+  },
+  "projects": {
+    "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Core\\PtpLabClock.Core.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Core\\PtpLabClock.Core.csproj",
+        "projectName": "PtpLabClock.Core",
+        "projectPath": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Core\\PtpLabClock.Core.csproj",
+        "packagesPath": "C:\\Users\\me\\.nuget\\packages\\",
+        "outputPath": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Core\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "D:\\NuGet.Config",
+          "C:\\Users\\me\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "framework": "net8.0",
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Protocol\\PtpLabClock.Protocol.csproj": {
+                "projectPath": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Protocol\\PtpLabClock.Protocol.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "framework": "net8.0",
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.422/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Pcap\\PtpLabClock.Pcap.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Pcap\\PtpLabClock.Pcap.csproj",
+        "projectName": "PtpLabClock.Pcap",
+        "projectPath": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Pcap\\PtpLabClock.Pcap.csproj",
+        "packagesPath": "C:\\Users\\me\\.nuget\\packages\\",
+        "outputPath": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Pcap\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "D:\\NuGet.Config",
+          "C:\\Users\\me\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "framework": "net8.0",
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Core\\PtpLabClock.Core.csproj": {
+                "projectPath": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Core\\PtpLabClock.Core.csproj"
+              },
+              "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Protocol\\PtpLabClock.Protocol.csproj": {
+                "projectPath": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Protocol\\PtpLabClock.Protocol.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "framework": "net8.0",
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "SharpPcap": {
+              "target": "Package",
+              "version": "[6.3.1, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.422/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Protocol\\PtpLabClock.Protocol.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Protocol\\PtpLabClock.Protocol.csproj",
+        "projectName": "PtpLabClock.Protocol",
+        "projectPath": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Protocol\\PtpLabClock.Protocol.csproj",
+        "packagesPath": "C:\\Users\\me\\.nuget\\packages\\",
+        "outputPath": "D:\\Git\\PtpLabClock\\src\\PtpLabClock.Protocol\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "D:\\NuGet.Config",
+          "C:\\Users\\me\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "framework": "net8.0",
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "framework": "net8.0",
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.422/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
