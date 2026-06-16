@@ -1,4 +1,8 @@
-eth.type == 0x88f7
+# Display filters
+eth.type == 0x88f7 or ptp
 ptp
 eth.dst == 01:1b:19:00:00:00
 eth.dst == 01:80:c2:00:00:0e
+
+# Capture filter for untagged, VLAN, and QinQ Layer-2 PTP
+ether proto 0x88f7 or (vlan and ether proto 0x88f7) or (vlan and vlan and ether proto 0x88f7)

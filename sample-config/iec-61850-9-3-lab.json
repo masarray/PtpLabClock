@@ -11,4 +11,7 @@
   "clockClass": 248,
   "clockAccuracy": "Unknown",
   "safetyScope": "Lab simulation only; not a certified timing source"
+,
+  "vlan": { "enabled": false, "vid": 0, "pcp": 4 },
+  "rawSelfTestRecommended": true
 }

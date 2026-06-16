@@ -97,5 +97,77 @@ public sealed class PtpMessageSerializerTests
         Assert.Equal("02-00-00-FF-FE-00-00-01", result.SourceClockIdentity);
     }
 
+
+    [Fact]
+    public void BuildVlan_WritesExpectedTagAndInspectorFindsPtpAtOffset18()
+    {
+        var serializer = new PtpMessageSerializer();
+        var sourceMac = MacAddress.Parse("02-00-00-00-00-01");
+        var frame = EthernetFrameBuilder.BuildVlan(
+            PtpMulticastAddresses.General,
+            sourceMac,
+            vlanId: 100,
+            priorityCodePoint: 4,
+            EtherTypes.Ptp,
+            serializer.BuildAnnounce(Options, 2));
+
+        Assert.Equal(EtherTypes.Vlan, ReadUInt16(frame, 12));
+        Assert.Equal((ushort)((4 << 13) | 100), ReadUInt16(frame, 14));
+        Assert.Equal(EtherTypes.Ptp, ReadUInt16(frame, 16));
+
+        var result = PtpFrameInspector.Inspect(frame, expectedDomain: 7);
+        Assert.True(result.IsValid, result.Error);
+        Assert.Equal(18, result.PtpOffset);
+        Assert.Equal("Layer-2 VLAN", result.Transport);
+    }
+
+    [Fact]
+    public void BuildQinQ_WritesExpectedTagsAndInspectorFindsPtpAtOffset22()
+    {
+        var serializer = new PtpMessageSerializer();
+        var sourceMac = MacAddress.Parse("02-00-00-00-00-01");
+        var frame = EthernetFrameBuilder.BuildQinQ(
+            PtpMulticastAddresses.General,
+            sourceMac,
+            serviceVlanId: 20,
+            servicePriorityCodePoint: 4,
+            customerVlanId: 100,
+            customerPriorityCodePoint: 4,
+            EtherTypes.Ptp,
+            serializer.BuildSync(Options, 3));
+
+        Assert.Equal(EtherTypes.ProviderBridge, ReadUInt16(frame, 12));
+        Assert.Equal((ushort)((4 << 13) | 20), ReadUInt16(frame, 14));
+        Assert.Equal(EtherTypes.Vlan, ReadUInt16(frame, 16));
+        Assert.Equal((ushort)((4 << 13) | 100), ReadUInt16(frame, 18));
+        Assert.Equal(EtherTypes.Ptp, ReadUInt16(frame, 20));
+
+        var result = PtpFrameInspector.Inspect(frame, expectedDomain: 7);
+        Assert.True(result.IsValid, result.Error);
+        Assert.Equal(22, result.PtpOffset);
+        Assert.Equal("Layer-2 QinQ", result.Transport);
+    }
+
+    [Fact]
+    public void BuildVlan_RejectsOutOfRangeVlanFields()
+    {
+        var payload = new byte[44];
+        var sourceMac = MacAddress.Parse("02-00-00-00-00-01");
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => EthernetFrameBuilder.BuildVlan(PtpMulticastAddresses.General, sourceMac, 4095, 0, EtherTypes.Ptp, payload));
+        Assert.Throws<ArgumentOutOfRangeException>(() => EthernetFrameBuilder.BuildVlan(PtpMulticastAddresses.General, sourceMac, 1, 8, EtherTypes.Ptp, payload));
+    }
+
+    [Fact]
+    public void BuildPdelayReq_ProducesReadableCommonHeader()
+    {
+        var serializer = new PtpMessageSerializer();
+        var pdelayReq = serializer.BuildPdelayReq(Options, 0x3333, new PtpTimestamp(10, 20));
+
+        Assert.Equal(54, pdelayReq.Length);
+        Assert.Equal((byte)PtpMessageType.PdelayReq, (byte)(pdelayReq[0] & 0x0F));
+        Assert.Equal(0x3333, ReadUInt16(pdelayReq, 30));
+    }
+
     private static ushort ReadUInt16(byte[] buffer, int offset) => (ushort)((buffer[offset] << 8) | buffer[offset + 1]);
 }

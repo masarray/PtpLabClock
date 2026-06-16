@@ -11,7 +11,9 @@ using PtpLabClock.Core.Health;
 using PtpLabClock.Core.Monitor;
 using PtpLabClock.Core.Transports;
 using PtpLabClock.Pcap.Adapters;
+using PtpLabClock.Pcap.Diagnostics;
 using PtpLabClock.Pcap.Transport;
+using PtpLabClock.Protocol;
 using PtpLabClock.Protocol.Enums;
 using PtpLabClock.Reporting;
 
@@ -44,6 +46,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         RefreshCommand = new RelayCommand(_ => RefreshAdapters());
         StartCommand = new AsyncRelayCommand(_ => StartAsync(), _ => SelectedAdapter is not null && _engine is null);
         StopCommand = new AsyncRelayCommand(_ => StopAsync(), _ => _engine is not null);
+        RawSelfTestCommand = new AsyncRelayCommand(_ => RunRawSelfTestAsync(), _ => SelectedAdapter is not null && SelectedAdapter.IsDemo == false && _engine is null);
         ScenarioCommand = new RelayCommand(p => _engine?.ApplyScenario(p?.ToString() ?? string.Empty), _ => _engine is not null);
         ResetScenarioCommand = new RelayCommand(_ => _engine?.ResetScenarios(), _ => _engine is not null);
         ExportReportCommand = new RelayCommand(_ => ExportReport());
@@ -59,6 +62,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     public ICommand RefreshCommand { get; }
     public ICommand StartCommand { get; }
     public ICommand StopCommand { get; }
+    public ICommand RawSelfTestCommand { get; }
     public ICommand ScenarioCommand { get; }
     public ICommand ResetScenarioCommand { get; }
     public ICommand ExportReportCommand { get; }
@@ -71,6 +75,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         {
             if (Set(ref _selectedAdapter, value))
             {
+                ApplyAdapterDefaults(value);
                 Notify(nameof(AdapterModeText));
                 Notify(nameof(AdapterModeDetail));
                 RaiseCommandStates();
@@ -88,6 +93,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
                 Notify(nameof(IsIecProfile));
                 Notify(nameof(IsAnalyzerProfile));
                 Notify(nameof(IsGenericProfile));
+                ApplyProfileDefaults(value);
             }
         }
     }
@@ -148,42 +154,88 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         };
         Adapters.Add(demo);
 
-        try
-        {
-            foreach (var adapter in GetRawAdapters())
-                Adapters.Add(adapter);
+        var provider = new NpcapAdapterProvider();
+        var rawAdapters = provider.GetAdapters();
+        foreach (var adapter in rawAdapters)
+            Adapters.Add(adapter);
 
-            SelectedAdapter = demo;
-            AdapterStatusText = $"{Adapters.Count - 1} RAW adapter candidate(s) listed. Demo Mode is selected by default; RAW transport uses Npcap/SharpPcap in this build.";
-            AddEvent("INFO", "ADAPTER", $"{Adapters.Count - 1} RAW adapter candidate(s) listed. Select a real Ethernet adapter for RAW packet injection, or keep Demo Mode for UI validation.");
-        }
-        catch (Exception ex)
-        {
-            SelectedAdapter = demo;
-            AdapterStatusText = "Npcap adapter scan failed. Demo Mode selected automatically.";
-            AddEvent("WARN", "NPCAP", ex.Message);
+        SelectedAdapter = demo;
+
+        AdapterStatusText = string.IsNullOrWhiteSpace(provider.LastDiagnostic)
+            ? $"{rawAdapters.Count} RAW adapter candidate(s) listed. Demo Mode is selected by default."
+            : provider.LastDiagnostic;
+
+        AddEvent(rawAdapters.Count > 0 ? "INFO" : "WARN", "ADAPTER", AdapterStatusText);
+        if (rawAdapters.Count > 0)
+            AddEvent("INFO", "RAW", "Select a wired Ethernet adapter for real Layer-2 PTP injection. Wi-Fi/VPN/virtual adapters may capture but often block injection.");
+        else
             AddEvent("INFO", "UI", "Demo Mode is active so the app can still run without raw packet access.");
-        }
 
         RaiseCommandStates();
     }
 
 
-    private static IReadOnlyList<NetworkAdapterInfoDto> GetRawAdapters()
+    private void ApplyAdapterDefaults(NetworkAdapterInfoDto? adapter)
     {
+        if (adapter is null || adapter.IsDemo || string.IsNullOrWhiteSpace(adapter.PhysicalAddress))
+            return;
+
+        SourceMac = adapter.PhysicalAddress;
         try
         {
-            return new NpcapAdapterProvider().GetAdapters();
+            ClockIdentity = PtpLabClock.Protocol.ClockIdentity.Parse(adapter.PhysicalAddress).ToString();
         }
-        catch
+        catch (Exception ex)
         {
-            return Array.Empty<NetworkAdapterInfoDto>();
+            AddEvent("WARN", "CLOCKID", "Could not derive clock identity from adapter MAC: " + ex.Message);
         }
+    }
+
+    private void ApplyProfileDefaults(PtpProfilePreset preset)
+    {
+        var defaults = PtpProfileDefaults.For(preset);
+        DomainNumber = defaults.DomainNumber;
+        ClockClass = defaults.ClockClass;
+        AdapterStatusText = defaults.ScopeNote;
     }
 
     private static IPtpTransport CreateTransport(NetworkAdapterInfoDto adapter)
     {
         return adapter.IsDemo ? new MockPtpTransport() : new NpcapPtpTransport();
+    }
+
+    private async Task RunRawSelfTestAsync()
+    {
+        if (SelectedAdapter is null || SelectedAdapter.IsDemo)
+            return;
+
+        AddEvent("INFO", "SELFTEST", "Running RAW self-test: open adapter, apply VLAN-aware filter, send one Announce, then watch local capture.");
+        var tester = new NpcapRawSelfTest();
+        try
+        {
+            var result = await tester.RunAsync(
+                SelectedAdapter.Id,
+                SourceMac,
+                ClockIdentity,
+                (byte)Math.Clamp(DomainNumber, 0, 255));
+
+            AdapterStatusText = result.Summary;
+            AddEvent(result.Passed ? "INFO" : "WARN", "SELFTEST", result.Summary);
+            foreach (var line in result.Events.Take(8))
+                AddEvent(line.StartsWith("ERROR:", StringComparison.OrdinalIgnoreCase) ? "ERROR" : "INFO", "SELFTEST", line);
+
+            if (!result.LocalCaptureObserved && result.SendSucceeded)
+                AddEvent("INFO", "WIRESHARK", "Verify externally with display filter: eth.type == 0x88f7 or ptp. Capture filter: ether proto 0x88f7 or (vlan and ether proto 0x88f7).");
+        }
+        catch (Exception ex)
+        {
+            AdapterStatusText = "RAW self-test failed.";
+            AddEvent("ERROR", "SELFTEST", ex.Message);
+        }
+        finally
+        {
+            RaiseCommandStates();
+        }
     }
 
     private async Task StartAsync()
@@ -198,22 +250,14 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         _engine.MonitorSnapshotUpdated += OnMonitorSnapshotUpdated;
         _engine.StateChanged += (_, state) => Dispatch(() => StateText = state.ToString().ToUpperInvariant());
 
-        var options = new PtpEngineOptions
-        {
-            AdapterId = SelectedAdapter.Id,
-            AdapterName = SelectedAdapter.Description,
-            SourceMac = SourceMac,
-            ClockIdentity = ClockIdentity,
-            ProfilePreset = SelectedProfile,
-            DomainNumber = (byte)Math.Clamp(DomainNumber, 0, 255),
-            ClockClass = (byte)Math.Clamp(ClockClass, 0, 255),
-            ClockAccuracy = PtpClockAccuracy.Unknown,
-            Priority1 = 128,
-            Priority2 = 128,
-            EnablePdelayResponder = true,
-            EnableFollowUp = true,
-            TwoStep = true
-        };
+        var options = PtpProfileDefaults.For(SelectedProfile).CreateOptions();
+        options.AdapterId = SelectedAdapter.Id;
+        options.AdapterName = SelectedAdapter.Description;
+        options.SourceMac = SourceMac;
+        options.ClockIdentity = ClockIdentity;
+        options.ProfilePreset = SelectedProfile;
+        options.DomainNumber = (byte)Math.Clamp(DomainNumber, 0, 255);
+        options.ClockClass = (byte)Math.Clamp(ClockClass, 0, 255);
 
         try
         {
@@ -443,6 +487,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     {
         (StartCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
         (StopCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+        (RawSelfTestCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
         (ScenarioCommand as RelayCommand)?.RaiseCanExecuteChanged();
         (ResetScenarioCommand as RelayCommand)?.RaiseCanExecuteChanged();
         (ExportReportCommand as RelayCommand)?.RaiseCanExecuteChanged();

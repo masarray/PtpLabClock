@@ -13,8 +13,8 @@ It is **not** a certified timing source and must not be represented as a replace
 ## What is in this repository
 
 - WPF desktop dashboard with Demo Mode fallback.
-- Protocol serializer for PTPv2 Layer-2 frames using EtherType `0x88F7`.
-- Announce, Sync, Follow_Up, Pdelay_Resp, and Pdelay_Resp_Follow_Up builders.
+- Protocol serializer for PTPv2 Layer-2 frames using EtherType `0x88F7`, including untagged, VLAN, and QinQ frame builders.
+- Announce, Sync, Follow_Up, Pdelay_Req, Pdelay_Resp, and Pdelay_Resp_Follow_Up builders.
 - Passive PTP monitor and timing health validator.
 - Scenario hooks for GM lost, missing Follow_Up, clock degraded, sequence jump, GM switch, and stop Pdelay.
 - PCAP session writer for generated/captured evidence.
@@ -30,7 +30,7 @@ Current behavior:
 
 - **Demo Mode** works without Npcap.
 - **Protocol validation** works without Npcap.
-- **RAW packet mode** uses Npcap/SharpPcap to enumerate live adapters, open the selected adapter in promiscuous/immediate mode, capture PTP EtherType `0x88F7`, and inject Layer-2 Ethernet frames with `SendPacket`.
+- **RAW packet mode** uses Npcap/SharpPcap to enumerate live adapters, open the selected adapter in promiscuous/immediate mode, apply a VLAN-aware PTP capture filter, and inject Layer-2 Ethernet frames with `SendPacket`.
 
 This keeps the repository Apache-2.0 while making real NIC mode operational. Npcap remains an external runtime dependency.
 
@@ -56,12 +56,18 @@ dotnet run --project .\src\PtpLabClock.Console -- --validate-protocol --domain 0
 dotnet run --project .\src\PtpLabClock.App
 ```
 
-Inside the app, select **Demo Engine** first and click **Start Engine** to validate the UI. For real traffic, run the app as Administrator, select a wired RAW adapter, then validate packets in Wireshark with `eth.type == 0x88f7`.
+Inside the app, select **Demo Engine** first and click **Start Engine** to validate the UI. For real traffic, run the app as Administrator, select a wired RAW adapter, click **RAW Self Test**, then start the engine and validate packets in Wireshark with `eth.type == 0x88f7` or `ptp`.
 
-Recommended Wireshark filter for external validation:
+Recommended Wireshark display filter for external validation:
 
 ```text
-eth.type == 0x88f7
+eth.type == 0x88f7 or ptp
+```
+
+Recommended capture filter when validating VLAN-tagged process-bus traffic:
+
+```text
+ether proto 0x88f7 or (vlan and ether proto 0x88f7) or (vlan and vlan and ether proto 0x88f7)
 ```
 
 ## Project structure

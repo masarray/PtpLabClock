@@ -10,6 +10,7 @@ using PtpLabClock.Protocol.Ethernet;
 using PtpLabClock.Protocol.Messages;
 using PtpLabClock.Protocol.Serialization;
 using PtpLabClock.Pcap.Adapters;
+using PtpLabClock.Pcap.Diagnostics;
 using PtpLabClock.Pcap.Transport;
 using PtpLabClock.Reporting;
 
@@ -40,6 +41,7 @@ if (args.Contains("--list") || args.Length == 0)
     if (adapters.Count == 0)
         Console.WriteLine("No RAW adapter candidates were exposed. Demo Mode and --validate-protocol still work without Npcap.");
     Console.WriteLine("Run examples:");
+    Console.WriteLine("dotnet run -- --raw-self-test --adapter-index 0 --domain 0");
     Console.WriteLine("dotnet run -- --adapter-index 0 --domain 0 --profile iec61850");
     Console.WriteLine("dotnet run -- --adapter-index 0 --domain 0 --record-pcap .\\captures\\ptp-live.pcap");
     Console.WriteLine("dotnet run -- --monitor --adapter-index 0 --domain 0");
@@ -69,6 +71,12 @@ var profile = profileText.Equals("generic", StringComparison.OrdinalIgnoreCase)
         ? PtpProfilePreset.AnalyzerTest
         : PtpProfilePreset.Iec61850_9_3_Lab;
 
+if (args.Contains("--raw-self-test"))
+{
+    await RunRawSelfTestAsync(adapters[adapterIndex], domain);
+    return;
+}
+
 if (args.Contains("--monitor") || args.Contains("--health"))
 {
     await RunPassiveMonitorAsync(adapters[adapterIndex], domain, recordPcapPath, exportReportPath, exportPackagePath, args.Contains("--health"));
@@ -93,13 +101,16 @@ try
     engine.CountersUpdated += (_, e) => Console.Title = $"Announce={e.Counters.AnnounceTx} Sync={e.Counters.SyncTx} FollowUp={e.Counters.FollowUpTx} PdelayRx={e.Counters.PdelayReqRx} Last={e.Counters.LastTxSummary}";
 
     var adapter = adapters[adapterIndex];
-    var options = new PtpEngineOptions
+    var options = PtpProfileDefaults.For(profile).CreateOptions();
+    options.AdapterId = adapter.Id;
+    options.AdapterName = adapter.Description;
+    options.DomainNumber = domain;
+    options.ProfilePreset = profile;
+    if (!string.IsNullOrWhiteSpace(adapter.PhysicalAddress))
     {
-        AdapterId = adapter.Id,
-        AdapterName = adapter.Description,
-        DomainNumber = domain,
-        ProfilePreset = profile
-    };
+        options.SourceMac = adapter.PhysicalAddress;
+        options.ClockIdentity = ClockIdentity.Parse(adapter.PhysicalAddress).ToString();
+    }
 
     await engine.StartAsync(options);
     Console.WriteLine("Running. Press ENTER to stop.");
@@ -115,12 +126,30 @@ finally
     }
 }
 
+static async Task RunRawSelfTestAsync(PtpLabClock.Core.Abstractions.NetworkAdapterInfoDto adapter, byte domain)
+{
+    Console.WriteLine("Process Bus Timing Lab - RAW Self Test");
+    Console.WriteLine($"Adapter : {adapter.Description}");
+    Console.WriteLine($"Domain  : {domain}");
+
+    var sourceMac = string.IsNullOrWhiteSpace(adapter.PhysicalAddress) ? "02-00-00-00-00-01" : adapter.PhysicalAddress;
+    var clockIdentity = ClockIdentity.Parse(sourceMac).ToString();
+    var result = await new NpcapRawSelfTest().RunAsync(adapter.Id, sourceMac, clockIdentity, domain);
+
+    Console.WriteLine(result.Summary);
+    foreach (var line in result.Events)
+        Console.WriteLine(" - " + line);
+
+    if (result.SendSucceeded && !result.LocalCaptureObserved)
+        Console.WriteLine("External verification recommended: Wireshark display filter 'eth.type == 0x88f7 or ptp'.");
+}
+
 static async Task RunPassiveMonitorAsync(PtpLabClock.Core.Abstractions.NetworkAdapterInfoDto adapter, byte domain, string recordPcapPath, string exportReportPath, string exportPackagePath, bool showHealth)
 {
     Console.WriteLine(showHealth ? "Process Bus Timing Lab - Timing Health Validator" : "Process Bus Timing Lab - Passive PTP Monitor");
     Console.WriteLine($"Adapter : {adapter.Description}");
     Console.WriteLine($"Domain  : {domain}");
-    Console.WriteLine("Filter  : eth.type == 0x88f7");
+    Console.WriteLine("Filter  : eth.type == 0x88f7 or ptp");
     Console.WriteLine("Press ENTER to stop.");
     Console.WriteLine();
 
@@ -268,7 +297,7 @@ static void RunProtocolValidation(byte domain, string exportPcapPath)
     }
 
     Console.WriteLine();
-    Console.WriteLine("Wireshark display filter: eth.type == 0x88f7");
+    Console.WriteLine("Wireshark display filter: eth.type == 0x88f7 or ptp");
     Console.WriteLine(hasFailure ? "Result: FAIL" : "Result: PASS");
 }
 
@@ -293,6 +322,9 @@ static IReadOnlyList<(string Label, byte[] Frame)> BuildValidationFrames(byte do
         ("Announce", EthernetFrameBuilder.Build(PtpMulticastAddresses.General, srcMac, EtherTypes.Ptp, serializer.BuildAnnounce(build, 1))),
         ("Sync", EthernetFrameBuilder.Build(PtpMulticastAddresses.General, srcMac, EtherTypes.Ptp, serializer.BuildSync(build, 2, syncTimestamp))),
         ("Follow_Up", EthernetFrameBuilder.Build(PtpMulticastAddresses.General, srcMac, EtherTypes.Ptp, serializer.BuildFollowUp(build, 2, syncTimestamp))),
+        ("VLAN Announce", EthernetFrameBuilder.BuildVlan(PtpMulticastAddresses.General, srcMac, 100, 4, EtherTypes.Ptp, serializer.BuildAnnounce(build, 4))),
+        ("QinQ Sync", EthernetFrameBuilder.BuildQinQ(PtpMulticastAddresses.General, srcMac, 20, 4, 100, 4, EtherTypes.Ptp, serializer.BuildSync(build, 5, syncTimestamp))),
+        ("Pdelay_Req", EthernetFrameBuilder.Build(PtpMulticastAddresses.PeerDelay, srcMac, EtherTypes.Ptp, serializer.BuildPdelayReq(build, 6, responseTimestamp))),
         ("Pdelay_Resp", EthernetFrameBuilder.Build(PtpMulticastAddresses.PeerDelay, srcMac, EtherTypes.Ptp, serializer.BuildPdelayResp(build, 3, requester, responseTimestamp))),
         ("Pdelay_Resp_Follow_Up", EthernetFrameBuilder.Build(PtpMulticastAddresses.PeerDelay, srcMac, EtherTypes.Ptp, serializer.BuildPdelayRespFollowUp(build, 3, requester, responseTimestamp)))
     };

@@ -57,6 +57,22 @@ public sealed class PtpMessageSerializer
         return buffer;
     }
 
+    public byte[] BuildPdelayReq(PtpBuildOptions options, ushort sequenceId)
+    {
+        return BuildPdelayReq(options, sequenceId, PtpTimestamp.Now());
+    }
+
+    public byte[] BuildPdelayReq(PtpBuildOptions options, ushort sequenceId, PtpTimestamp originTimestamp)
+    {
+        const ushort length = 54;
+        var buffer = CreateHeader(PtpMessageType.PdelayReq, length, options, sequenceId, controlField: 5, logInterval: 0x7F, flags: 0);
+        var writer = new BigEndianWriter(buffer);
+        writer.Seek(34);
+        originTimestamp.WriteTo(writer);
+        writer.Skip(10); // reserved
+        return buffer;
+    }
+
     public byte[] BuildPdelayResp(PtpBuildOptions options, ushort sequenceId, ReadOnlySpan<byte> requestingPortIdentity)
     {
         return BuildPdelayResp(options, sequenceId, requestingPortIdentity, PtpTimestamp.Now());

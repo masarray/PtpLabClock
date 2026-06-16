@@ -26,4 +26,8 @@ public sealed class PtpEngineOptions
 
     public int AnnounceIntervalMs { get; set; } = 1000;
     public int SyncIntervalMs { get; set; } = 1000;
+
+    public bool EnableVlan { get; set; }
+    public ushort VlanId { get; set; }
+    public byte VlanPriority { get; set; } = 4;
 }

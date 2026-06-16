@@ -248,7 +248,7 @@ public sealed class PtpMasterEngine : IAsyncDisposable
 
         var seq = _sequence.Next(PtpMessageType.Announce);
         var ptp = _serializer.BuildAnnounce(_buildOptions, seq);
-        var frame = EthernetFrameBuilder.Build(PtpMulticastAddresses.General, _sourceMac, EtherTypes.Ptp, ptp);
+        var frame = BuildPtpFrame(PtpMulticastAddresses.General, ptp);
         await EnqueueTxAsync(new PtpTxItem(frame, PtpTxKind.Announce, seq, "TX", "ANNOUNCE", $"Announce seq={seq} domain={_buildOptions.DomainNumber}."), token).ConfigureAwait(false);
     }
 
@@ -259,14 +259,14 @@ public sealed class PtpMasterEngine : IAsyncDisposable
         var seq = _sequence.Next(PtpMessageType.Sync);
         var syncTimestamp = PtpTimestamp.Now();
         var sync = _serializer.BuildSync(_buildOptions, seq, syncTimestamp);
-        var syncFrame = EthernetFrameBuilder.Build(PtpMulticastAddresses.General, _sourceMac, EtherTypes.Ptp, sync);
+        var syncFrame = BuildPtpFrame(PtpMulticastAddresses.General, sync);
         await EnqueueTxAsync(new PtpTxItem(syncFrame, PtpTxKind.Sync, seq, "TX", "SYNC", $"Sync seq={seq}."), token).ConfigureAwait(false);
 
         if (!_dropFollowUp && _options?.EnableFollowUp == true)
         {
             await Task.Delay(8, token).ConfigureAwait(false);
             var follow = _serializer.BuildFollowUp(_buildOptions, seq, syncTimestamp);
-            var followFrame = EthernetFrameBuilder.Build(PtpMulticastAddresses.General, _sourceMac, EtherTypes.Ptp, follow);
+            var followFrame = BuildPtpFrame(PtpMulticastAddresses.General, follow);
             await EnqueueTxAsync(new PtpTxItem(followFrame, PtpTxKind.FollowUp, seq, "TX", "FOLLOWUP", $"Follow_Up seq={seq} paired with Sync timestamp."), token).ConfigureAwait(false);
         }
     }
@@ -304,12 +304,12 @@ public sealed class PtpMasterEngine : IAsyncDisposable
 
             var responseTimestamp = PtpTimestamp.Now();
             var resp = _serializer.BuildPdelayResp(_buildOptions, sequenceId, requester, responseTimestamp);
-            var respFrame = EthernetFrameBuilder.Build(PtpMulticastAddresses.PeerDelay, _sourceMac, EtherTypes.Ptp, resp);
+            var respFrame = BuildPtpFrame(PtpMulticastAddresses.PeerDelay, resp);
             await EnqueueTxAsync(new PtpTxItem(respFrame, PtpTxKind.PdelayResp, sequenceId, "TX", "PDELAY", $"Pdelay_Resp seq={sequenceId} to {ToClockIdentityText(requester)}."), _cts?.Token ?? CancellationToken.None).ConfigureAwait(false);
 
             await Task.Delay(8, _cts?.Token ?? CancellationToken.None).ConfigureAwait(false);
             var follow = _serializer.BuildPdelayRespFollowUp(_buildOptions, sequenceId, requester, responseTimestamp);
-            var followFrame = EthernetFrameBuilder.Build(PtpMulticastAddresses.PeerDelay, _sourceMac, EtherTypes.Ptp, follow);
+            var followFrame = BuildPtpFrame(PtpMulticastAddresses.PeerDelay, follow);
             await EnqueueTxAsync(new PtpTxItem(followFrame, PtpTxKind.PdelayRespFollowUp, sequenceId, "TX", "PDELAY", $"Pdelay_Resp_Follow_Up seq={sequenceId} paired with response timestamp."), _cts?.Token ?? CancellationToken.None).ConfigureAwait(false);
 
             Log("RX", "PDELAY", $"Pdelay_Req seq={sequenceId} received from {ToClockIdentityText(requester)}; response queued.");
@@ -323,6 +323,22 @@ public sealed class PtpMasterEngine : IAsyncDisposable
             RecordError(ex.Message);
             Log("ERROR", "PDELAY", ex.Message);
         }
+    }
+
+    private byte[] BuildPtpFrame(MacAddress destination, ReadOnlySpan<byte> ptpPayload)
+    {
+        if (_options?.EnableVlan == true)
+        {
+            return EthernetFrameBuilder.BuildVlan(
+                destination,
+                _sourceMac,
+                _options.VlanId,
+                _options.VlanPriority,
+                EtherTypes.Ptp,
+                ptpPayload);
+        }
+
+        return EthernetFrameBuilder.Build(destination, _sourceMac, EtherTypes.Ptp, ptpPayload);
     }
 
     private async ValueTask EnqueueTxAsync(PtpTxItem item, CancellationToken token)

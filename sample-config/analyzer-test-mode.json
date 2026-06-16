@@ -14,4 +14,7 @@
     "GM_SWITCH",
     "STOP_PDELAY"
   ]
+,
+  "vlan": { "enabled": false, "vid": 0, "pcp": 4 },
+  "rawSelfTestRecommended": true
 }

@@ -17,19 +17,20 @@ Build a Windows-friendly lab instrument for IEC 61850 process bus timing work: s
 - Apache-2.0 license direction.
 - Buildable solution layout, including restored `PtpLabClock.Pcap` boundary.
 - WPF dashboard shell and Demo Mode.
-- Layer-2 PTP frame builder.
-- Announce / Sync / Follow_Up / Pdelay response generation.
+- Layer-2 PTP frame builder, including untagged, VLAN, and QinQ helpers.
+- Announce / Sync / Follow_Up / Pdelay request/response generation.
 - Passive monitor and timing health validator.
 - Protocol regression tests.
 - GitHub Actions CI and release packaging.
 - Internal PDF/session evidence export without external PDF package dependency.
+- RAW Npcap transport with VLAN-aware capture filter, adapter diagnostics, MAC-derived clock identity, and RAW Self Test.
 
 ## Next engineering milestones
 
 1. Run CI on GitHub and fix any environment-specific build issue.
-2. Expand byte-level tests for VLAN/QinQ and malformed PTP frames.
-3. Harden RAW Npcap transport with VLAN-aware filters, self-test injection, and better adapter diagnostics.
-4. Add adapter capability display: MAC, medium type, link status, admin hint.
+2. Add WPF VLAN controls for VID/PCP instead of keeping VLAN TX as an engine/config-level capability.
+3. Add CLI/session report section for RAW Self Test evidence.
+4. Add adapter capability display refinements: driver name, link speed, and admin hint.
 5. Improve per-source sequence tracking by message family.
 6. Add Sync/Follow_Up pairing health checks by source and sequence ID.
 7. Add Pdelay request/response/follow-up peer table.
