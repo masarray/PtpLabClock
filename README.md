@@ -18,7 +18,7 @@ Process Bus Timing Lab helps substation automation engineers see whether PTPv2 L
 
 ## Product screenshot
 
-![Process Bus Timing Lab WPF dashboard showing PTP timing flow, scenario player, VLAN settings, and timing health cards for IEC 61850 Process Bus testing](docs/assets/ptp-lab-dashboard.svg)
+![Process Bus Timing Lab WPF dashboard showing PTP timing flow, scenario player, VLAN settings, and timing health cards for IEC 61850 Process Bus testing](docs/assets/ptp-lab-dashboard.webp)
 
 *The dashboard combines Clock Profile setup, Live Timing Flow counters, Scenario Player actions, VLAN settings, RAW self-test, and Timing Health diagnostics in one compact engineering workspace.*
 
@@ -133,7 +133,9 @@ Start with the product website and repository docs:
 - [Quick start](docs/quick-start.md)
 - [Installation](docs/installation.md)
 - [RAW NIC mode](docs/raw-nic-mode.md)
+- [RAW NIC compatibility matrix](docs/raw-nic-compatibility.md)
 - [Protocol validation](docs/protocol-validation.md)
+- [Golden PCAP fixtures](docs/golden-pcap-fixtures.md)
 - [Passive monitor](docs/passive-monitor.md)
 - [Timing health validation](docs/health-validation.md)
 - [Wireshark validation](docs/wireshark-validation.md)

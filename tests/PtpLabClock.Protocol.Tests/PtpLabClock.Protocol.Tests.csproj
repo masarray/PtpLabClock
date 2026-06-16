@@ -18,4 +18,9 @@
     <ProjectReference Include="..\..\src\PtpLabClock.Protocol\PtpLabClock.Protocol.csproj" />
     <ProjectReference Include="..\..\src\PtpLabClock.Core\PtpLabClock.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Fixtures\pcap\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

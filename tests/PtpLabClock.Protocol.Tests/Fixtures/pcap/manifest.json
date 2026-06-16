@@ -1,0 +1,57 @@
+{
+  "name": "Process Bus Timing Lab Golden PCAP Fixtures",
+  "license": "Apache-2.0",
+  "generatedUtc": "2026-06-16T06:57:14Z",
+  "purpose": "Deterministic Layer-2 PTP fixtures for regression tests, analyzer validation, and documentation examples.",
+  "fixtures": [
+    {
+      "file": "ptp-announce-untagged.pcap",
+      "frames": 1,
+      "transport": "Layer-2",
+      "expectedMessages": [
+        "Announce"
+      ],
+      "domain": 0,
+      "notes": "Untagged PTPv2 Announce frame on EtherType 0x88F7."
+    },
+    {
+      "file": "ptp-sync-followup-vlan.pcap",
+      "frames": 2,
+      "transport": "Layer-2 VLAN",
+      "expectedMessages": [
+        "Sync",
+        "FollowUp"
+      ],
+      "domain": 0,
+      "vlanId": 100,
+      "pcp": 4,
+      "notes": "Two-step Sync and matching Follow_Up on IEEE 802.1Q VLAN."
+    },
+    {
+      "file": "ptp-pdelay-qinq.pcap",
+      "frames": 1,
+      "transport": "Layer-2 QinQ",
+      "expectedMessages": [
+        "PdelayReq"
+      ],
+      "domain": 0,
+      "serviceVlanId": 200,
+      "customerVlanId": 100,
+      "pcp": 4,
+      "notes": "Stacked VLAN Pdelay_Req sample for process-bus visibility checks."
+    },
+    {
+      "file": "ptp-mixed-process-bus-golden.pcap",
+      "frames": 4,
+      "transport": "Mixed",
+      "expectedMessages": [
+        "Announce",
+        "Sync",
+        "FollowUp",
+        "PdelayReq"
+      ],
+      "domain": 0,
+      "notes": "Compact mixed fixture used by docs and regression tests."
+    }
+  ]
+}

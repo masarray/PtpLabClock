@@ -28,3 +28,14 @@ Open the PCAP in Wireshark and use:
 ```text
 eth.type == 0x88f7 or ptp
 ```
+
+
+## Golden PCAP fixtures
+
+Deterministic PCAP fixtures are stored under:
+
+```text
+tests/PtpLabClock.Protocol.Tests/Fixtures/pcap/
+```
+
+They cover untagged Announce, VLAN Sync/Follow_Up, QinQ Pdelay, and a mixed process-bus smoke fixture. See [Golden PCAP fixtures](golden-pcap-fixtures.md).

@@ -33,16 +33,16 @@ The product must remain honest about timing capability:
 - [x] Checksums and release manifest.
 - [x] Build/test/security automation.
 - [x] Governance and contribution docs.
-- [ ] First signed/tagged release.
-- [ ] Real screenshots from WPF UI.
+- [x] First tagged release with portable EXE artifacts.
+- [x] Real screenshots from the WPF UI are used in README and GitHub Pages.
 - [ ] Short demo GIF or video.
-- [ ] Field-lab RAW NIC compatibility matrix.
-- [ ] Golden PCAP fixtures from known-good analyzer sessions.
+- [x] RAW NIC compatibility matrix document and evidence table template.
+- [x] Deterministic golden PCAP fixtures for regression and analyzer smoke checks.
 
 ## Next maturity targets
 
-1. Publish `v0.1.0` with release notes and portable EXE artifacts.
-2. Add real UI screenshots to `docs/assets/` and replace the CSS mockup preview when available.
-3. Add a RAW NIC compatibility table for tested adapters and Npcap versions.
-4. Add golden PCAP fixtures for untagged, VLAN, QinQ, Sync/Follow_Up, and Pdelay flows.
-5. Add a troubleshooting wizard inside the WPF UI for Npcap permission, adapter, VLAN, and self-capture issues.
+1. Add a short demo GIF or video for the landing page and README.
+2. Populate the RAW NIC compatibility table with real adapter, driver, and Npcap test results.
+3. Add known-good analyzer screenshots for each golden PCAP fixture.
+4. Add a troubleshooting wizard inside the WPF UI for Npcap permission, adapter, VLAN, and self-capture issues.
+5. Consider code-signing for portable EXE artifacts to reduce Windows SmartScreen friction.

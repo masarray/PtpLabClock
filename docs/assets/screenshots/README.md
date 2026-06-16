@@ -1,9 +1,14 @@
 # Screenshots
 
-Place public screenshots here before publishing the GitHub repository:
+Public screenshots used by the repository and GitHub Pages live in `docs/assets/`.
 
-- `app-dashboard.png`
+Current product screenshot assets:
+
+- `../ptp-lab-dashboard.png`
+- `../ptp-lab-dashboard.webp`
+
+Optional additional screenshots that can be added later:
+
 - `raw-self-test.png`
 - `wireshark-ptp-validation.png`
-
-The README references these files only when they exist in the public repository.
+- `scenario-player.png`

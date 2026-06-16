@@ -1,8 +1,8 @@
 # Default maintainership
-* @ari.sulistiono
+* @masarray
 
 # Protocol and RAW transport changes need careful review
-/src/PtpLabClock.Protocol/ @ari.sulistiono
-/src/PtpLabClock.Core/ @ari.sulistiono
-/src/PtpLabClock.Pcap/ @ari.sulistiono
-/tests/ @ari.sulistiono
+/src/PtpLabClock.Protocol/ @masarray
+/src/PtpLabClock.Core/ @masarray
+/src/PtpLabClock.Pcap/ @masarray
+/tests/ @masarray
