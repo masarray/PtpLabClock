@@ -1,13 +1,29 @@
 // SPDX-License-Identifier: Apache-2.0
 using System.Buffers.Binary;
 using PtpLabClock.Core.Engine;
+using PtpLabClock.Protocol;
 using PtpLabClock.Protocol.Enums;
+using PtpLabClock.Protocol.Ethernet;
+using PtpLabClock.Protocol.Messages;
+using PtpLabClock.Protocol.Serialization;
 using Xunit;
 
 namespace PtpLabClock.Protocol.Tests;
 
 public sealed class PtpGoldenPcapFixtureTests
 {
+    private static readonly MacAddress SourceMac = MacAddress.Parse("02-00-00-00-00-01");
+
+    private static readonly PtpBuildOptions Options = new()
+    {
+        DomainNumber = 0,
+        ClockIdentity = ClockIdentity.Parse("02-00-00-FF-FE-00-00-01"),
+        PortNumber = 1,
+        ClockClass = 248,
+        ClockAccuracy = PtpClockAccuracy.Unknown,
+        TwoStep = true
+    };
+
     [Fact]
     public void GoldenPcapFixtures_ArePresentAndValidateExpectedFrames()
     {
@@ -68,10 +84,7 @@ public sealed class PtpGoldenPcapFixtureTests
 
     private static IReadOnlyList<byte[]> ReadPcapFixture(string fileName)
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "pcap", fileName);
-        Assert.True(File.Exists(path), $"Missing PCAP fixture: {path}");
-
-        var bytes = File.ReadAllBytes(path);
+        var bytes = BuildPcapFixture(fileName);
         Assert.True(bytes.Length >= 24, $"PCAP fixture is too short: {fileName}");
 
         var magic = BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(0, 4));
@@ -97,6 +110,113 @@ public sealed class PtpGoldenPcapFixtureTests
         }
 
         return frames;
+    }
+
+    private static byte[] BuildPcapFixture(string fileName)
+    {
+        var serializer = new PtpMessageSerializer();
+
+        var frames = fileName switch
+        {
+            "ptp-announce-untagged.pcap" => new[]
+            {
+                EthernetFrameBuilder.Build(
+                    PtpMulticastAddresses.General,
+                    SourceMac,
+                    EtherTypes.Ptp,
+                    serializer.BuildAnnounce(Options, 1))
+            },
+            "ptp-sync-followup-vlan.pcap" => new[]
+            {
+                EthernetFrameBuilder.BuildVlan(
+                    PtpMulticastAddresses.General,
+                    SourceMac,
+                    vlanId: 100,
+                    priorityCodePoint: 4,
+                    EtherTypes.Ptp,
+                    serializer.BuildSync(Options, 2, new PtpTimestamp(10, 20))),
+                EthernetFrameBuilder.BuildVlan(
+                    PtpMulticastAddresses.General,
+                    SourceMac,
+                    vlanId: 100,
+                    priorityCodePoint: 4,
+                    EtherTypes.Ptp,
+                    serializer.BuildFollowUp(Options, 2, new PtpTimestamp(10, 20)))
+            },
+            "ptp-pdelay-qinq.pcap" => new[]
+            {
+                EthernetFrameBuilder.BuildQinQ(
+                    PtpMulticastAddresses.PeerDelay,
+                    SourceMac,
+                    serviceVlanId: 200,
+                    servicePriorityCodePoint: 4,
+                    customerVlanId: 100,
+                    customerPriorityCodePoint: 4,
+                    EtherTypes.Ptp,
+                    serializer.BuildPdelayReq(Options, 3, new PtpTimestamp(11, 22)))
+            },
+            "ptp-mixed-process-bus-golden.pcap" => new[]
+            {
+                EthernetFrameBuilder.Build(
+                    PtpMulticastAddresses.General,
+                    SourceMac,
+                    EtherTypes.Ptp,
+                    serializer.BuildAnnounce(Options, 1)),
+                EthernetFrameBuilder.BuildVlan(
+                    PtpMulticastAddresses.General,
+                    SourceMac,
+                    vlanId: 100,
+                    priorityCodePoint: 4,
+                    EtherTypes.Ptp,
+                    serializer.BuildSync(Options, 2, new PtpTimestamp(10, 20))),
+                EthernetFrameBuilder.BuildVlan(
+                    PtpMulticastAddresses.General,
+                    SourceMac,
+                    vlanId: 100,
+                    priorityCodePoint: 4,
+                    EtherTypes.Ptp,
+                    serializer.BuildFollowUp(Options, 2, new PtpTimestamp(10, 20))),
+                EthernetFrameBuilder.BuildQinQ(
+                    PtpMulticastAddresses.PeerDelay,
+                    SourceMac,
+                    serviceVlanId: 200,
+                    servicePriorityCodePoint: 4,
+                    customerVlanId: 100,
+                    customerPriorityCodePoint: 4,
+                    EtherTypes.Ptp,
+                    serializer.BuildPdelayReq(Options, 3, new PtpTimestamp(11, 22)))
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(fileName), fileName, "Unknown golden PCAP fixture.")
+        };
+
+        return WritePcap(frames);
+    }
+
+    private static byte[] WritePcap(IEnumerable<byte[]> frames)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+
+        writer.Write(0xA1B2C3D4u); // little-endian PCAP, microsecond timestamps
+        writer.Write((ushort)2);
+        writer.Write((ushort)4);
+        writer.Write(0);
+        writer.Write(0u);
+        writer.Write(65535u);
+        writer.Write(1u); // LINKTYPE_ETHERNET
+
+        var index = 0;
+        foreach (var frame in frames)
+        {
+            writer.Write(1_700_000_000u + (uint)index);
+            writer.Write(1_000u + (uint)(index * 1_000));
+            writer.Write((uint)frame.Length);
+            writer.Write((uint)frame.Length);
+            writer.Write(frame);
+            index++;
+        }
+
+        return stream.ToArray();
     }
 
     private sealed record FixtureExpectation(
