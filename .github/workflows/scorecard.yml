@@ -1,7 +1,6 @@
 name: OpenSSF Scorecard
 
 on:
-  branch_protection_rule:
   schedule:
     - cron: '31 19 * * 1'
   push:
@@ -9,8 +8,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  security-events: write
-  id-token: write
   contents: read
   actions: read
 
@@ -19,6 +16,14 @@ jobs:
     name: Scorecard
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+      issues: read
+      pull-requests: read
+      security-events: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
