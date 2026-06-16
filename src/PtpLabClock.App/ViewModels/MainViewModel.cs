@@ -29,6 +29,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private string _clockIdentity = "02-00-00-FF-FE-00-00-01";
     private int _domainNumber;
     private int _clockClass = 248;
+    private bool _enableVlan;
+    private int _vlanId = 100;
+    private int _vlanPriority = 4;
     private string _stateText = "STOPPED";
     private string _adapterStatusText = "Demo Mode is always available. RAW mode uses Npcap/SharpPcap and requires administrator privileges on Windows.";
     private PtpRuntimeCounters _counters = new();
@@ -120,6 +123,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     public string ClockIdentity { get => _clockIdentity; set => Set(ref _clockIdentity, value); }
     public int DomainNumber { get => _domainNumber; set => Set(ref _domainNumber, value); }
     public int ClockClass { get => _clockClass; set => Set(ref _clockClass, value); }
+    public bool EnableVlan { get => _enableVlan; set => Set(ref _enableVlan, value); }
+    public int VlanId { get => _vlanId; set => Set(ref _vlanId, value); }
+    public int VlanPriority { get => _vlanPriority; set => Set(ref _vlanPriority, value); }
     public string StateText { get => _stateText; set => Set(ref _stateText, value); }
     public string AdapterStatusText { get => _adapterStatusText; set => Set(ref _adapterStatusText, value); }
 
@@ -196,6 +202,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         var defaults = PtpProfileDefaults.For(preset);
         DomainNumber = defaults.DomainNumber;
         ClockClass = defaults.ClockClass;
+        EnableVlan = defaults.EnableVlan;
+        VlanId = defaults.VlanId == 0 ? 100 : defaults.VlanId;
+        VlanPriority = defaults.VlanPriority;
         AdapterStatusText = defaults.ScopeNote;
     }
 
@@ -217,7 +226,10 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
                 SelectedAdapter.Id,
                 SourceMac,
                 ClockIdentity,
-                (byte)Math.Clamp(DomainNumber, 0, 255));
+                (byte)Math.Clamp(DomainNumber, 0, 255),
+                EnableVlan,
+                (ushort)Math.Clamp(VlanId, 0, 4094),
+                (byte)Math.Clamp(VlanPriority, 0, 7));
 
             AdapterStatusText = result.Summary;
             AddEvent(result.Passed ? "INFO" : "WARN", "SELFTEST", result.Summary);
@@ -258,6 +270,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         options.ProfilePreset = SelectedProfile;
         options.DomainNumber = (byte)Math.Clamp(DomainNumber, 0, 255);
         options.ClockClass = (byte)Math.Clamp(ClockClass, 0, 255);
+        options.EnableVlan = EnableVlan;
+        options.VlanId = (ushort)Math.Clamp(VlanId, 0, 4094);
+        options.VlanPriority = (byte)Math.Clamp(VlanPriority, 0, 7);
 
         try
         {
@@ -270,7 +285,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             await _engine.StartAsync(options);
             AddEvent("INFO", "MODE", SelectedAdapter.IsDemo
                 ? "Demo transport started. Counters will move, but no network packets are transmitted."
-                : "RAW transport started. Validate packets in Wireshark with eth.type == 0x88f7.");
+                : EnableVlan
+                    ? $"RAW transport started with VLAN ID={Math.Clamp(VlanId, 0, 4094)}, PCP={Math.Clamp(VlanPriority, 0, 7)}. Validate packets in Wireshark with eth.type == 0x88f7 or ptp."
+                    : "RAW transport started untagged. Validate packets in Wireshark with eth.type == 0x88f7 or ptp.");
             RaiseCommandStates();
         }
         catch (Exception ex)

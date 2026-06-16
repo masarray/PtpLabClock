@@ -7,10 +7,22 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    name: Windows build
+    name: Windows ${{ matrix.configuration }}
     runs-on: windows-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
 
     steps:
       - name: Checkout
@@ -21,6 +33,14 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'Directory.Build.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
       - name: Validate repository layout
         shell: pwsh
         run: .\tools\scripts\validate-layout.ps1
@@ -29,17 +49,22 @@ jobs:
         run: dotnet restore .\PtpLabClock.sln
 
       - name: Build
-        run: dotnet build .\PtpLabClock.sln -c Release --no-restore
+        run: dotnet build .\PtpLabClock.sln -c ${{ matrix.configuration }} --no-restore
 
       - name: Test
-        run: dotnet test .\PtpLabClock.sln -c Release --no-build --logger trx --results-directory TestResults
+        run: dotnet test .\PtpLabClock.sln -c ${{ matrix.configuration }} --no-build --logger trx --results-directory TestResults
 
       - name: Protocol smoke validation
+        if: matrix.configuration == 'Release'
         run: dotnet run --project .\src\PtpLabClock.Console --configuration Release -- --validate-protocol --domain 0
+
+      - name: Export protocol validation PCAP
+        if: matrix.configuration == 'Release'
+        run: dotnet run --project .\src\PtpLabClock.Console --configuration Release -- --validate-protocol --domain 0 --export-pcap .\TestResults\ptp-validation.pcap
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-results-${{ matrix.configuration }}
           path: TestResults

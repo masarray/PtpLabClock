@@ -1,0 +1,8 @@
+# Default maintainership
+* @ari.sulistiono
+
+# Protocol and RAW transport changes need careful review
+/src/PtpLabClock.Protocol/ @ari.sulistiono
+/src/PtpLabClock.Core/ @ari.sulistiono
+/src/PtpLabClock.Pcap/ @ari.sulistiono
+/tests/ @ari.sulistiono

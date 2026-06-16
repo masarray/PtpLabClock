@@ -14,6 +14,12 @@ using PtpLabClock.Pcap.Diagnostics;
 using PtpLabClock.Pcap.Transport;
 using PtpLabClock.Reporting;
 
+if (args.Contains("--help") || args.Contains("-h"))
+{
+    PrintHelp();
+    return;
+}
+
 if (args.Contains("--validate-protocol"))
 {
     var exportPcap = ReadString(args, "--export-pcap", string.Empty);
@@ -42,7 +48,9 @@ if (args.Contains("--list") || args.Length == 0)
         Console.WriteLine("No RAW adapter candidates were exposed. Demo Mode and --validate-protocol still work without Npcap.");
     Console.WriteLine("Run examples:");
     Console.WriteLine("dotnet run -- --raw-self-test --adapter-index 0 --domain 0");
+    Console.WriteLine("dotnet run -- --raw-self-test --adapter-index 0 --domain 0 --vlan --vlan-id 100 --vlan-pcp 4");
     Console.WriteLine("dotnet run -- --adapter-index 0 --domain 0 --profile iec61850");
+    Console.WriteLine("dotnet run -- --adapter-index 0 --domain 0 --profile iec61850 --vlan --vlan-id 100 --vlan-pcp 4");
     Console.WriteLine("dotnet run -- --adapter-index 0 --domain 0 --record-pcap .\\captures\\ptp-live.pcap");
     Console.WriteLine("dotnet run -- --monitor --adapter-index 0 --domain 0");
     Console.WriteLine("dotnet run -- --health --adapter-index 0 --domain 0");
@@ -65,6 +73,9 @@ var profileText = ReadString(args, "--profile", "iec61850");
 var recordPcapPath = ReadString(args, "--record-pcap", string.Empty);
 var exportReportPath = ReadString(args, "--export-report", string.Empty);
 var exportPackagePath = ReadString(args, "--export-package", string.Empty);
+var enableVlan = args.Contains("--vlan") || HasValue(args, "--vlan-id");
+var vlanId = ReadUShort(args, "--vlan-id", 100);
+var vlanPriority = ReadByte(args, "--vlan-pcp", 4);
 var profile = profileText.Equals("generic", StringComparison.OrdinalIgnoreCase)
     ? PtpProfilePreset.GenericPtpV2
     : profileText.Equals("analyzer", StringComparison.OrdinalIgnoreCase)
@@ -73,7 +84,7 @@ var profile = profileText.Equals("generic", StringComparison.OrdinalIgnoreCase)
 
 if (args.Contains("--raw-self-test"))
 {
-    await RunRawSelfTestAsync(adapters[adapterIndex], domain);
+    await RunRawSelfTestAsync(adapters[adapterIndex], domain, enableVlan, vlanId, vlanPriority);
     return;
 }
 
@@ -106,6 +117,9 @@ try
     options.AdapterName = adapter.Description;
     options.DomainNumber = domain;
     options.ProfilePreset = profile;
+    options.EnableVlan = enableVlan;
+    options.VlanId = vlanId;
+    options.VlanPriority = vlanPriority;
     if (!string.IsNullOrWhiteSpace(adapter.PhysicalAddress))
     {
         options.SourceMac = adapter.PhysicalAddress;
@@ -113,7 +127,9 @@ try
     }
 
     await engine.StartAsync(options);
-    Console.WriteLine("Running. Press ENTER to stop.");
+    Console.WriteLine(enableVlan
+        ? $"Running with VLAN ID={vlanId}, PCP={vlanPriority}. Press ENTER to stop."
+        : "Running untagged. Press ENTER to stop.");
     Console.ReadLine();
     await engine.StopAsync();
 }
@@ -126,15 +142,16 @@ finally
     }
 }
 
-static async Task RunRawSelfTestAsync(PtpLabClock.Core.Abstractions.NetworkAdapterInfoDto adapter, byte domain)
+static async Task RunRawSelfTestAsync(PtpLabClock.Core.Abstractions.NetworkAdapterInfoDto adapter, byte domain, bool enableVlan, ushort vlanId, byte vlanPriority)
 {
     Console.WriteLine("Process Bus Timing Lab - RAW Self Test");
     Console.WriteLine($"Adapter : {adapter.Description}");
     Console.WriteLine($"Domain  : {domain}");
+    Console.WriteLine(enableVlan ? $"VLAN    : enabled, ID={vlanId}, PCP={vlanPriority}" : "VLAN    : disabled");
 
     var sourceMac = string.IsNullOrWhiteSpace(adapter.PhysicalAddress) ? "02-00-00-00-00-01" : adapter.PhysicalAddress;
     var clockIdentity = ClockIdentity.Parse(sourceMac).ToString();
-    var result = await new NpcapRawSelfTest().RunAsync(adapter.Id, sourceMac, clockIdentity, domain);
+    var result = await new NpcapRawSelfTest().RunAsync(adapter.Id, sourceMac, clockIdentity, domain, enableVlan, vlanId, vlanPriority);
 
     Console.WriteLine(result.Summary);
     foreach (var line in result.Events)
@@ -338,10 +355,37 @@ static PtpFrameValidationResult Validate(string label, byte[] frame, byte domain
     return result;
 }
 
+static void PrintHelp()
+{
+    Console.WriteLine("Process Bus Timing Lab - PTP Lab Clock Simulator");
+    Console.WriteLine();
+    Console.WriteLine("Commands:");
+    Console.WriteLine("  --list");
+    Console.WriteLine("  --validate-protocol [--domain n] [--export-pcap path]");
+    Console.WriteLine("  --raw-self-test --adapter-index n [--domain n] [--vlan --vlan-id id --vlan-pcp pcp]");
+    Console.WriteLine("  --monitor --adapter-index n [--domain n] [--record-pcap path]");
+    Console.WriteLine("  --health --adapter-index n [--domain n] [--export-report path] [--export-package path]");
+    Console.WriteLine("  --adapter-index n [--domain n] [--profile iec61850|analyzer|generic] [--vlan --vlan-id id --vlan-pcp pcp]");
+    Console.WriteLine();
+    Console.WriteLine("Safety: this is a lab simulator and diagnostic companion, not a certified grandmaster.");
+}
+
+static bool HasValue(string[] args, string key)
+{
+    var i = Array.IndexOf(args, key);
+    return i >= 0 && i + 1 < args.Length;
+}
+
 static int ReadInt(string[] args, string key, int fallback)
 {
     var i = Array.IndexOf(args, key);
     return i >= 0 && i + 1 < args.Length && int.TryParse(args[i + 1], out var value) ? value : fallback;
+}
+
+static ushort ReadUShort(string[] args, string key, ushort fallback)
+{
+    var value = ReadInt(args, key, fallback);
+    return (ushort)Math.Clamp(value, 0, 4094);
 }
 
 static byte ReadByte(string[] args, string key, byte fallback)

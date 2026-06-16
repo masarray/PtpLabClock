@@ -1,70 +1,92 @@
 # Process Bus Timing Lab
 
-**Current module:** PTP Lab Clock Simulator / PTP Monitor  
-**Solution:** `PtpLabClock`  
-**License:** Apache-2.0
+[![Build and Test](https://github.com/masarray/PtpLabClock/actions/workflows/build.yml/badge.svg)](https://github.com/masarray/PtpLabClock/actions/workflows/build.yml)
+[![CodeQL](https://github.com/masarray/PtpLabClock/actions/workflows/codeql.yml/badge.svg)](https://github.com/masarray/PtpLabClock/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://github.com/masarray/PtpLabClock/actions/workflows/scorecard.yml/badge.svg)](https://github.com/masarray/PtpLabClock/actions/workflows/scorecard.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-Process Bus Timing Lab is a Windows-friendly lab and diagnostic tool for IEC 61850 process bus timing work. The current module focuses on PTPv2 Layer-2 visibility, synthetic message generation, passive health monitoring, scenario playback, and evidence export for analyzer validation.
+**PTP Lab Clock Simulator and Process Bus Timing Monitor for IEC 61850 lab work.**
 
-It is designed for engineers who need to check whether PTP traffic is visible, whether an analyzer decodes Announce / Sync / Follow_Up / Pdelay messages correctly, and whether a lab network has basic timing-health symptoms worth investigating.
+Process Bus Timing Lab helps substation automation engineers validate PTPv2 Layer-2 visibility, analyzer decoding, VLAN/QinQ packet handling, passive timing-health symptoms, and session evidence exports in a controlled lab network.
 
-It is **not** a certified timing source and must not be represented as a replacement for a GPS/PTP grandmaster, hardware timestamping NIC, or final relay acceptance timing setup.
+It is built for practical engineering workflows:
 
-## What is in this repository
+- “Can Wireshark or my analyzer see PTP on this NIC?”
+- “Are Announce / Sync / Follow_Up / Pdelay frames decoded correctly?”
+- “Is this process-bus VLAN carrying usable PTP traffic?”
+- “Can I generate controlled GM-lost, missing-Follow_Up, sequence-jump, and degraded-clock scenarios?”
+- “Can I export a short PDF/ZIP evidence package for discussion?”
 
-- WPF desktop dashboard with Demo Mode fallback.
-- Protocol serializer for PTPv2 Layer-2 frames using EtherType `0x88F7`, including untagged, VLAN, and QinQ frame builders.
-- Announce, Sync, Follow_Up, Pdelay_Req, Pdelay_Resp, and Pdelay_Resp_Follow_Up builders.
-- Passive PTP monitor and timing health validator.
-- Scenario hooks for GM lost, missing Follow_Up, clock degraded, sequence jump, GM switch, and stop Pdelay.
-- PCAP session writer for generated/captured evidence.
-- Lightweight Apache-2.0 internal PDF report generator.
-- xUnit protocol regression tests.
-- GitHub Actions build/test workflow and release workflow.
+> **Safety boundary:** this project is a lab simulator and diagnostic companion. It is **not** a certified timing source, GPS grandmaster, hardware-timestamped clock, or relay-acceptance timing reference.
 
-## Important RAW mode note
+## Highlights
 
-`src/PtpLabClock.Pcap` now contains a SharpPcap-backed RAW transport. The repository does **not** bundle the Npcap installer or driver; users must install Npcap separately on Windows.
+- WPF dashboard with Demo Mode fallback.
+- Console tool for adapter listing, protocol validation, RAW self-test, passive monitor, health monitor, and evidence export.
+- PTPv2 Layer-2 serializer for Announce, Sync, Follow_Up, Pdelay_Req, Pdelay_Resp, and Pdelay_Resp_Follow_Up.
+- Untagged, VLAN, and QinQ Ethernet frame builders.
+- SharpPcap/Npcap RAW transport isolated behind a dedicated project.
+- VLAN-aware capture filter for untagged, VLAN, and QinQ PTP.
+- Passive monitor grouped by domain and source clock identity.
+- Timing-health validator with explainable PASS/WARN/FAIL checks.
+- PDF report and ZIP session evidence export.
+- xUnit protocol regression tests and GitHub Actions CI.
+- Apache-2.0 license.
 
-Current behavior:
+## Download
 
-- **Demo Mode** works without Npcap.
-- **Protocol validation** works without Npcap.
-- **RAW packet mode** uses Npcap/SharpPcap to enumerate live adapters, open the selected adapter in promiscuous/immediate mode, apply a VLAN-aware PTP capture filter, and inject Layer-2 Ethernet frames with `SendPacket`.
+Use the GitHub Releases page after publishing tags:
 
-This keeps the repository Apache-2.0 while making real NIC mode operational. Npcap remains an external runtime dependency.
+| Package | Use when |
+|---|---|
+| `PtpLabClock.App.win-x64.self-contained.zip` | You want the easiest Windows desktop app package. |
+| `PtpLabClock.App.win-x64.framework-dependent.zip` | You already have .NET 8 Desktop Runtime installed and want a smaller package. |
+| `PtpLabClock.Console.win-x64.self-contained.zip` | You want CLI validation, RAW self-test, monitor, or CI-style workflows. |
 
-## Requirements
+Each release also includes `checksums.txt` and `PtpLabClock.release-sbom.spdx.json`.
 
-- Windows 10/11 for the WPF app.
-- .NET 8 SDK.
-- Visual Studio 2022 or newer with .NET desktop development workload.
-- Optional for RAW mode: Npcap and elevated process privileges.
-
-## Quick start
+## 60-second source build
 
 ```powershell
-# Restore, build, and test
+git clone https://github.com/masarray/PtpLabClock.git
+cd PtpLabClock
 dotnet restore .\PtpLabClock.sln
-dotnet build .\PtpLabClock.sln -c Release --no-restore
-dotnet test .\PtpLabClock.sln -c Release --no-build
-
-# Run protocol byte-layout validation without RAW packet access
+dotnet build .\PtpLabClock.sln -c Release
+dotnet test .\PtpLabClock.sln -c Release
 dotnet run --project .\src\PtpLabClock.Console -- --validate-protocol --domain 0
+```
 
-# Run the WPF app
+Run the WPF app:
+
+```powershell
 dotnet run --project .\src\PtpLabClock.App
 ```
 
-Inside the app, select **Demo Engine** first and click **Start Engine** to validate the UI. For real traffic, run the app as Administrator, select a wired RAW adapter, click **RAW Self Test**, then start the engine and validate packets in Wireshark with `eth.type == 0x88f7` or `ptp`.
+## RAW NIC quick start
 
-Recommended Wireshark display filter for external validation:
+RAW mode requires Npcap installed on Windows and may require Administrator privileges.
+
+```powershell
+# List RAW adapters exposed by Npcap
+dotnet run --project .\src\PtpLabClock.Console -- --list
+
+# Untagged RAW self-test
+dotnet run --project .\src\PtpLabClock.Console -- --raw-self-test --adapter-index 0 --domain 0
+
+# VLAN-tagged RAW self-test
+dotnet run --project .\src\PtpLabClock.Console -- --raw-self-test --adapter-index 0 --domain 0 --vlan --vlan-id 100 --vlan-pcp 4
+
+# Start synthetic IEC 61850 lab profile traffic with VLAN tagging
+dotnet run --project .\src\PtpLabClock.Console -- --adapter-index 0 --domain 0 --profile iec61850 --vlan --vlan-id 100 --vlan-pcp 4
+```
+
+Recommended Wireshark display filter:
 
 ```text
 eth.type == 0x88f7 or ptp
 ```
 
-Recommended capture filter when validating VLAN-tagged process-bus traffic:
+Recommended capture filter for untagged, VLAN, and QinQ Layer-2 PTP:
 
 ```text
 ether proto 0x88f7 or (vlan and ether proto 0x88f7) or (vlan and vlan and ether proto 0x88f7)
@@ -73,35 +95,39 @@ ether proto 0x88f7 or (vlan and ether proto 0x88f7) or (vlan and vlan and ether 
 ## Project structure
 
 ```text
-src/PtpLabClock.App        WPF manager UI
+src/PtpLabClock.App        WPF dashboard
 src/PtpLabClock.Core       Engine, scheduler, monitor, health, diagnostics
-src/PtpLabClock.Protocol   PTPv2 and Ethernet packet builder/parser
+src/PtpLabClock.Protocol   PTPv2 and Ethernet serialization/parsing
 src/PtpLabClock.Pcap       SharpPcap/Npcap RAW Layer-2 transport
 src/PtpLabClock.Config     JSON settings/profile helpers
-src/PtpLabClock.Console    CLI smoke runner and protocol validator
+src/PtpLabClock.Console    CLI validation, monitor, RAW self-test
 src/PtpLabClock.Reporting  PDF/session evidence export
-tests/                     Protocol and monitor regression tests
-.github/workflows          CI and release automation
-```
-
-## Build scripts
-
-```powershell
-.\tools\scripts\validate-layout.ps1
-.\tools\scripts\build.ps1
+tests/                     xUnit regression tests
+.github/workflows          CI, security, release automation
 ```
 
 ## Documentation
 
-- `docs/quick-start.md` — user-facing setup and validation path.
-- `docs/ptp-scope-and-limitations.md` — what this tool can and cannot prove.
-- `docs/raw-npcap-roadmap.md` — RAW Npcap setup, limitations, and troubleshooting.
-- `docs/wireshark-validation.md` — packet validation hints.
-- `ROADMAP.md` — engineering roadmap.
-- `AGENTS.md` — coding and architecture direction.
+Start with [`docs/index.md`](docs/index.md):
 
-## License
+- [Quick start](docs/quick-start.md)
+- [Installation](docs/installation.md)
+- [RAW NIC mode](docs/raw-nic-mode.md)
+- [Protocol validation](docs/protocol-validation.md)
+- [Passive monitor](docs/passive-monitor.md)
+- [Timing health validation](docs/health-validation.md)
+- [Wireshark validation](docs/wireshark-validation.md)
+- [Limitations](docs/limitations.md)
+- [Development](docs/development.md)
 
-This repository is licensed under **Apache License 2.0**. See `LICENSE`.
+## Open-source hygiene
 
-Clean-room rule: do not copy source code from linuxptp, Meinberg tools, PTPSync, Npcap samples, SharpPcap examples, or other references into this repository unless a license review explicitly permits it. Study behavior and public protocol documentation only; implement independently.
+- License: Apache-2.0.
+- Security policy: [`SECURITY.md`](SECURITY.md).
+- Contribution guide: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- Third-party notices: [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+- Clean-room rule: do not copy incompatible or proprietary source code, UI assets, packet fixtures, or documentation text.
+
+## Limitations
+
+This project does not provide hardware timestamping, clock servo discipline, BMCA-complete grandmaster behavior, conformance certification, or relay-acceptance timing guarantees. Use certified PTP grandmaster equipment for protection, metering, and final commissioning workflows.

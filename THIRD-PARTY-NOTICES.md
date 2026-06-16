@@ -11,13 +11,14 @@ This project uses clean-room implementation principles. It may study public beha
 | .NET 8 | Runtime, libraries, console app, test execution | Follow Microsoft redistribution terms for the chosen deployment model. |
 | WPF | Windows desktop UI | Used only by `PtpLabClock.App`. |
 | xUnit | Unit/regression tests | Restored from NuGet for test projects only. |
+| Microsoft.NET.Test.Sdk | Test execution | Restored from NuGet for test projects only. |
 
 ## Optional External Components Not Bundled
 
 | Component | Purpose | Policy |
 |---|---|---|
 | Npcap | RAW Layer-2 packet capture/injection on Windows | Installer/driver is not bundled. Prefer user-installed Npcap unless redistribution/OEM licensing is confirmed. |
-| SharpPcap | .NET capture/injection binding for RAW mode | NuGet dependency; not bundled as source. |
+| SharpPcap | .NET capture/injection binding for RAW mode | NuGet dependency; MIT license; not bundled as source. |
 
 ## Reference Projects Studied, Not Copied
 

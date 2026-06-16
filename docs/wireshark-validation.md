@@ -1,26 +1,28 @@
 # Wireshark Validation
 
-Use this filter for Layer-2 PTP:
+Use Wireshark to verify the frames generated or captured by Process Bus Timing Lab.
+
+## Display filter
 
 ```text
-eth.type == 0x88f7
+eth.type == 0x88f7 or ptp
 ```
 
-Expected MVP messages:
+## Capture filter
 
-- Announce
-- Sync
-- Follow_Up
-- Pdelay_Resp / Pdelay_Resp_Follow_Up when an IED/analyzer sends Pdelay_Req
+Use this when you need to capture untagged, VLAN, and QinQ Layer-2 PTP:
 
-Validation checklist:
+```text
+ether proto 0x88f7 or (vlan and ether proto 0x88f7) or (vlan and vlan and ether proto 0x88f7)
+```
 
-1. Destination MAC for general messages: `01:1b:19:00:00:00`.
-2. Destination MAC for peer-delay messages: `01:80:c2:00:00:0e`.
-3. EtherType: `0x88f7`.
-4. PTP version: 2.
-5. Domain matches UI.
-6. SourcePortIdentity remains stable unless GM Switch scenario is activated.
-7. Sequence IDs increment.
-8. Sync and Follow_Up sequence IDs match.
-9. Fault scenarios appear in event timeline and in packet behavior.
+## Validation path
+
+1. Run protocol validation and export a PCAP.
+2. Open the PCAP in Wireshark.
+3. Confirm Announce, Sync, Follow_Up, Pdelay_Req, Pdelay_Resp, and Pdelay_Resp_Follow_Up decode as PTPv2.
+4. For RAW mode, run RAW Self Test and verify the selected adapter or external tap/SPAN sees the frame.
+
+## Important notes
+
+Some adapters do not loop back locally injected packets to the capture path. A RAW Self Test can therefore report send success while local capture is not observed. In that case, validate with external Wireshark capture on a tap/SPAN/mirror port.

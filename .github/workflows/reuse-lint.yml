@@ -1,0 +1,26 @@
+name: REUSE License Lint
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reuse:
+    name: REUSE lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install REUSE
+        run: python3 -m pip install --user reuse
+
+      - name: Check licensing metadata
+        run: python3 -m reuse lint

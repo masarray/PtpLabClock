@@ -1,0 +1,42 @@
+name: Bug report
+description: Report a reproducible defect
+title: "bug: "
+labels: [bug, triage]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Include exact commands, mode, adapter, domain, VLAN settings, and expected/actual behavior.
+      placeholder: |
+        1. Run ...
+        2. Select ...
+        3. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: |
+        OS:
+        .NET SDK:
+        Npcap version:
+        Adapter type:
+        Wireshark filter:
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Paste relevant CLI/app logs. Attach a small PCAP only when safe.
+    validations:
+      required: false

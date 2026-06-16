@@ -1,0 +1,40 @@
+name: Feature request
+description: Propose a focused improvement
+title: "feature: "
+labels: [enhancement, triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Which lab or diagnostic workflow is blocked?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the smallest useful change.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - WPF UI
+        - Console CLI
+        - Protocol serializer/parser
+        - RAW Npcap transport
+        - Passive monitor / health validator
+        - Reporting / session export
+        - Documentation / release
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety boundary
+      options:
+        - label: This request does not require claiming certified grandmaster or relay-acceptance behavior.
+          required: true
