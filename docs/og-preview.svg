@@ -1,0 +1,37 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Process Bus Timing Lab preview">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fbff"/>
+      <stop offset="0.48" stop-color="#edf6ff"/>
+      <stop offset="1" stop-color="#eefcf8"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1668e8"/>
+      <stop offset="1" stop-color="#23a8e8"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="26" stdDeviation="24" flood-color="#122a46" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="150" cy="80" r="240" fill="#1668e8" opacity="0.10"/>
+  <circle cx="1090" cy="120" r="260" fill="#0f9385" opacity="0.11"/>
+  <g transform="translate(90 88)">
+    <rect width="1020" height="454" rx="38" fill="rgba(255,255,255,0.82)" stroke="rgba(16,32,51,0.10)" filter="url(#shadow)"/>
+    <rect x="42" y="38" width="72" height="72" rx="22" fill="url(#accent)"/>
+    <text x="78" y="83" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="22" font-weight="600" fill="white">PTP</text>
+    <text x="138" y="67" font-family="Inter,Segoe UI,sans-serif" font-size="34" font-weight="500" fill="#102033">Process Bus Timing Lab</text>
+    <text x="138" y="105" font-family="Inter,Segoe UI,sans-serif" font-size="18" fill="#52657a">PTPv2 lab clock simulator and timing-health monitor</text>
+    <text x="42" y="192" font-family="Inter,Segoe UI,sans-serif" font-size="58" font-weight="500" fill="#102033">Make PTP visibility clear before Process Bus testing.</text>
+    <text x="42" y="258" font-family="Inter,Segoe UI,sans-serif" font-size="24" fill="#52657a">IEC 61850 lab workflows · VLAN/QinQ · RAW NIC self-test · Evidence export</text>
+    <g transform="translate(42 318)">
+      <rect width="170" height="46" rx="23" fill="url(#accent)"/>
+      <text x="85" y="30" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="16" font-weight="500" fill="white">Apache-2.0</text>
+      <rect x="186" width="170" height="46" rx="23" fill="rgba(22,104,232,0.08)" stroke="rgba(22,104,232,0.14)"/>
+      <text x="271" y="30" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="16" font-weight="500" fill="#155bbd">Windows lab</text>
+      <rect x="372" width="170" height="46" rx="23" fill="rgba(15,147,133,0.09)" stroke="rgba(15,147,133,0.14)"/>
+      <text x="457" y="30" text-anchor="middle" font-family="Inter,Segoe UI,sans-serif" font-size="16" font-weight="500" fill="#0f6b5f">PTP monitor</text>
+    </g>
+  </g>
+</svg>
