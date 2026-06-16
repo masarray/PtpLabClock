@@ -3,11 +3,14 @@
 [![Build and Test](https://github.com/masarray/PtpLabClock/actions/workflows/build.yml/badge.svg)](https://github.com/masarray/PtpLabClock/actions/workflows/build.yml)
 [![CodeQL](https://github.com/masarray/PtpLabClock/actions/workflows/codeql.yml/badge.svg)](https://github.com/masarray/PtpLabClock/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://github.com/masarray/PtpLabClock/actions/workflows/scorecard.yml/badge.svg)](https://github.com/masarray/PtpLabClock/actions/workflows/scorecard.yml)
+[![GitHub Pages](https://github.com/masarray/PtpLabClock/actions/workflows/pages.yml/badge.svg)](https://github.com/masarray/PtpLabClock/actions/workflows/pages.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 **PTP Lab Clock Simulator and Process Bus Timing Monitor for IEC 61850 lab work.**
 
 Process Bus Timing Lab helps substation automation engineers validate PTPv2 Layer-2 visibility, analyzer decoding, VLAN/QinQ packet handling, passive timing-health symptoms, and session evidence exports in a controlled lab network.
+
+**Product website:** https://masarray.github.io/PtpLabClock/
 
 It is built for practical engineering workflows:
 
@@ -108,7 +111,7 @@ tests/                     xUnit regression tests
 
 ## Documentation
 
-Start with [`docs/index.md`](docs/index.md):
+Start with [`docs/index.md`](docs/index.md) for repository documentation and the public landing page at [`docs/index.html`](docs/index.html):
 
 - [Quick start](docs/quick-start.md)
 - [Installation](docs/installation.md)
