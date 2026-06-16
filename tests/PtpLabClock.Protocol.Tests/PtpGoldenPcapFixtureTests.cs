@@ -133,15 +133,15 @@ public sealed class PtpGoldenPcapFixtureTests
                     SourceMac,
                     vlanId: 100,
                     priorityCodePoint: 4,
-                    EtherTypes.Ptp,
-                    serializer.BuildSync(Options, 2, new PtpTimestamp(10, 20))),
+                    etherType: EtherTypes.Ptp,
+                    payload: serializer.BuildSync(Options, 2, new PtpTimestamp(10, 20))),
                 EthernetFrameBuilder.BuildVlan(
                     PtpMulticastAddresses.General,
                     SourceMac,
                     vlanId: 100,
                     priorityCodePoint: 4,
-                    EtherTypes.Ptp,
-                    serializer.BuildFollowUp(Options, 2, new PtpTimestamp(10, 20)))
+                    etherType: EtherTypes.Ptp,
+                    payload: serializer.BuildFollowUp(Options, 2, new PtpTimestamp(10, 20)))
             },
             "ptp-pdelay-qinq.pcap" => new[]
             {
@@ -152,8 +152,8 @@ public sealed class PtpGoldenPcapFixtureTests
                     servicePriorityCodePoint: 4,
                     customerVlanId: 100,
                     customerPriorityCodePoint: 4,
-                    EtherTypes.Ptp,
-                    serializer.BuildPdelayReq(Options, 3, new PtpTimestamp(11, 22)))
+                    etherType: EtherTypes.Ptp,
+                    payload: serializer.BuildPdelayReq(Options, 3, new PtpTimestamp(11, 22)))
             },
             "ptp-mixed-process-bus-golden.pcap" => new[]
             {
@@ -167,15 +167,15 @@ public sealed class PtpGoldenPcapFixtureTests
                     SourceMac,
                     vlanId: 100,
                     priorityCodePoint: 4,
-                    EtherTypes.Ptp,
-                    serializer.BuildSync(Options, 2, new PtpTimestamp(10, 20))),
+                    etherType: EtherTypes.Ptp,
+                    payload: serializer.BuildSync(Options, 2, new PtpTimestamp(10, 20))),
                 EthernetFrameBuilder.BuildVlan(
                     PtpMulticastAddresses.General,
                     SourceMac,
                     vlanId: 100,
                     priorityCodePoint: 4,
-                    EtherTypes.Ptp,
-                    serializer.BuildFollowUp(Options, 2, new PtpTimestamp(10, 20))),
+                    etherType: EtherTypes.Ptp,
+                    payload: serializer.BuildFollowUp(Options, 2, new PtpTimestamp(10, 20))),
                 EthernetFrameBuilder.BuildQinQ(
                     PtpMulticastAddresses.PeerDelay,
                     SourceMac,
@@ -183,8 +183,8 @@ public sealed class PtpGoldenPcapFixtureTests
                     servicePriorityCodePoint: 4,
                     customerVlanId: 100,
                     customerPriorityCodePoint: 4,
-                    EtherTypes.Ptp,
-                    serializer.BuildPdelayReq(Options, 3, new PtpTimestamp(11, 22)))
+                    etherType: EtherTypes.Ptp,
+                    payload: serializer.BuildPdelayReq(Options, 3, new PtpTimestamp(11, 22)))
             },
             _ => throw new ArgumentOutOfRangeException(nameof(fileName), fileName, "Unknown golden PCAP fixture.")
         };
