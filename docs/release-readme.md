@@ -1,11 +1,13 @@
-# Process Bus Timing Lab Release Package
+# Process Bus Timing Lab Portable Release
 
-This package contains Process Bus Timing Lab binaries and license notices.
+This release contains self-contained Windows portable EXE files for Process Bus Timing Lab.
 
-## Start here
+## Fastest start
 
-- For the WPF app, run `PtpLabClock.App.exe`.
-- For CLI workflows, run `PtpLabClock.Console.exe --help` or `PtpLabClock.Console.exe --list`.
+- Desktop app: run `PtpLabClock.App.win-x64.portable.exe`.
+- Console tool: run `PtpLabClock.Console.win-x64.portable.exe --help` or `PtpLabClock.Console.win-x64.portable.exe --list`.
+
+The direct `.exe` artifacts are designed for the simplest user path. ZIP packages include the same EXE plus license notices and this README.
 
 ## RAW/Npcap mode
 
@@ -14,7 +16,13 @@ RAW NIC mode requires Npcap installed on Windows and may require Administrator p
 Recommended first command:
 
 ```powershell
-PtpLabClock.Console.exe --raw-self-test --adapter-index 0 --domain 0
+PtpLabClock.Console.win-x64.portable.exe --raw-self-test --adapter-index 0 --domain 0
+```
+
+VLAN self-test example:
+
+```powershell
+PtpLabClock.Console.win-x64.portable.exe --raw-self-test --adapter-index 0 --domain 0 --vlan --vlan-id 100 --vlan-pcp 4
 ```
 
 Wireshark display filter:
@@ -25,4 +33,4 @@ eth.type == 0x88f7 or ptp
 
 ## Safety
 
-This software is a lab simulator and diagnostic companion. It is not a certified timing source or relay-acceptance grandmaster.
+This software is a lab simulator and diagnostic companion. It is not a certified timing source, GPS grandmaster, hardware-timestamped clock, or relay-acceptance timing reference.
