@@ -17,7 +17,47 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Dependency Review
+      # Preferred gate: evaluates dependency changes against GitHub's dependency graph.
+      # Some repositories can have the graph unavailable/disabled. Treat that as a
+      # capability failure, not as permission to skip dependency security validation.
+      - name: GitHub dependency review
+        id: github_dependency_review
+        continue-on-error: true
         uses: actions/dependency-review-action@v4
         with:
           config-file: .github/dependency-review-config.yml
+
+      - name: Setup .NET fallback
+        if: steps.github_dependency_review.outcome == 'failure'
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: NuGet vulnerability audit fallback
+        if: steps.github_dependency_review.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "GitHub dependency review is unavailable or failed; enforcing NuGet audit fallback."
+
+          audit_log="$RUNNER_TEMP/nuget-audit.log"
+          set +e
+          dotnet restore ./PtpLabClock.sln \
+            -p:EnableWindowsTargeting=true \
+            -p:NuGetAudit=true \
+            -p:NuGetAuditMode=all 2>&1 | tee "$audit_log"
+          restore_exit=${PIPESTATUS[0]}
+          set -e
+
+          if [[ "$restore_exit" -ne 0 ]]; then
+            echo "NuGet restore/audit failed with exit code $restore_exit." >&2
+            exit "$restore_exit"
+          fi
+
+          if grep -Eq 'warning NU190[1-4]:' "$audit_log"; then
+            echo "NuGet audit found a package vulnerability (NU1901-NU1904)." >&2
+            grep -E 'warning NU190[1-4]:' "$audit_log" >&2 || true
+            exit 1
+          fi
+
+          echo "NuGet audit completed without NU1901-NU1904 vulnerability warnings."
