@@ -60,7 +60,4 @@ jobs:
             exit 1
           fi
 
-          dotnet list ./PtpLabClock.sln package \
-            --vulnerable \
-            --include-transitive \
-            --no-restore
+          echo "NuGet audit completed without NU1901-NU1904 vulnerability warnings."
