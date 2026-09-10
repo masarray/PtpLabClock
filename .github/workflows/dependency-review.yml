@@ -43,6 +43,7 @@ jobs:
           audit_log="$RUNNER_TEMP/nuget-audit.log"
           set +e
           dotnet restore ./PtpLabClock.sln \
+            -p:EnableWindowsTargeting=true \
             -p:NuGetAudit=true \
             -p:NuGetAuditMode=all 2>&1 | tee "$audit_log"
           restore_exit=${PIPESTATUS[0]}
@@ -59,4 +60,7 @@ jobs:
             exit 1
           fi
 
-          dotnet list ./PtpLabClock.sln package --vulnerable --include-transitive
+          dotnet list ./PtpLabClock.sln package \
+            --vulnerable \
+            --include-transitive \
+            --no-restore
