@@ -39,8 +39,24 @@ jobs:
         run: |
           set -euo pipefail
           echo "GitHub dependency review is unavailable or failed; enforcing NuGet audit fallback."
+
+          audit_log="$RUNNER_TEMP/nuget-audit.log"
+          set +e
           dotnet restore ./PtpLabClock.sln \
             -p:NuGetAudit=true \
-            -p:NuGetAuditMode=all \
-            '-p:WarningsAsErrors=NU1901;NU1902;NU1903;NU1904'
+            -p:NuGetAuditMode=all 2>&1 | tee "$audit_log"
+          restore_exit=${PIPESTATUS[0]}
+          set -e
+
+          if [[ "$restore_exit" -ne 0 ]]; then
+            echo "NuGet restore/audit failed with exit code $restore_exit." >&2
+            exit "$restore_exit"
+          fi
+
+          if grep -Eq 'warning NU190[1-4]:' "$audit_log"; then
+            echo "NuGet audit found a package vulnerability (NU1901-NU1904)." >&2
+            grep -E 'warning NU190[1-4]:' "$audit_log" >&2 || true
+            exit 1
+          fi
+
           dotnet list ./PtpLabClock.sln package --vulnerable --include-transitive
