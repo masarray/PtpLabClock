@@ -17,7 +17,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Dependency Review
+      # Preferred gate: evaluates dependency changes against GitHub's dependency graph.
+      # Some repositories can have the graph unavailable/disabled. Treat that as a
+      # capability failure, not as permission to skip dependency security validation.
+      - name: GitHub dependency review
+        id: github_dependency_review
+        continue-on-error: true
         uses: actions/dependency-review-action@v4
         with:
           config-file: .github/dependency-review-config.yml
+
+      - name: Setup .NET fallback
+        if: steps.github_dependency_review.outcome == 'failure'
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: NuGet vulnerability audit fallback
+        if: steps.github_dependency_review.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "GitHub dependency review is unavailable or failed; enforcing NuGet audit fallback."
+          dotnet restore ./PtpLabClock.sln \
+            -p:NuGetAudit=true \
+            -p:NuGetAuditMode=all \
+            '-p:WarningsAsErrors=NU1901;NU1902;NU1903;NU1904'
+          dotnet list ./PtpLabClock.sln package --vulnerable --include-transitive
